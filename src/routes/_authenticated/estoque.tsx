@@ -94,6 +94,19 @@ function Estoque() {
       : Math.max((Number(pesoBruto) || 0) - (Number(tara) || 0), 0);
   const total = liquido * (Number(preco) || 0);
 
+  const materiaisFiltrados =
+    categoriaMaterialId === "todas"
+      ? materiais
+      : materiais.filter((m) => m.categoria_material_id === categoriaMaterialId);
+
+  function selecionarCategoria(id: string) {
+    setCategoriaMaterialId(id);
+    if (id !== "todas") {
+      const m = materiais.find((x) => x.id === materialId);
+      if (m && m.categoria_material_id !== id) setMaterialId("");
+    }
+  }
+
   function selecionarMaterial(id: string) {
     setMaterialId(id);
     const m = materiais.find((x) => x.id === id);
