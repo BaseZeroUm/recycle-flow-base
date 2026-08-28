@@ -29,7 +29,10 @@ function Redefinir() {
     setLoading(true);
     const { error } = await supabase.auth.updateUser({ password: senha });
     setLoading(false);
-    if (error) return toast.error("Não foi possível alterar", { description: error.message });
+    if (error) {
+      toast.error("Não foi possível alterar", { description: error.message });
+      return;
+    }
     toast.success("Senha atualizada");
     navigate({ to: "/painel", replace: true });
   }

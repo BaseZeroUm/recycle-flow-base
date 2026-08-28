@@ -41,7 +41,10 @@ function AuthPage() {
       password: String(f.get("senha")),
     });
     setLoading(false);
-    if (error) return toast.error("Não foi possível entrar", { description: error.message });
+    if (error) {
+      toast.error("Não foi possível entrar", { description: error.message });
+      return;
+    }
     navigate({ to: "/painel", replace: true });
   }
 
@@ -63,7 +66,10 @@ function AuthPage() {
       },
     });
     setLoading(false);
-    if (error) return toast.error("Não foi possível criar a conta", { description: error.message });
+    if (error) {
+      toast.error("Não foi possível criar a conta", { description: error.message });
+      return;
+    }
     if (data.session) {
       navigate({ to: "/painel", replace: true });
     } else {
@@ -78,17 +84,26 @@ function AuthPage() {
     const result = await lovable.auth.signInWithOAuth("google", {
       redirect_uri: window.location.origin,
     });
-    if (result.error) return toast.error("Falha no login com Google");
+    if (result.error) {
+      toast.error("Falha no login com Google");
+      return;
+    }
     if (result.redirected) return;
     navigate({ to: "/painel", replace: true });
   }
 
   async function recuperar(email: string) {
-    if (!email) return toast.error("Informe o e-mail para recuperar a senha");
+    if (!email) {
+      toast.error("Informe o e-mail para recuperar a senha");
+      return;
+    }
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/redefinir-senha`,
     });
-    if (error) return toast.error(error.message);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     toast.success("Enviamos um link de redefinição para o seu e-mail.");
   }
 
