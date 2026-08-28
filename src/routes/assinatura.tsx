@@ -103,6 +103,26 @@ function Assinatura() {
             ))}
           </ul>
 
+          <div className="mt-8 grid gap-4 sm:grid-cols-2">
+            <div className="flex flex-col items-center gap-2 rounded-2xl border bg-background p-6 text-center">
+              <p className="text-sm text-muted-foreground">Mensal</p>
+              <p className="text-4xl font-extrabold">
+                R$300<span className="text-base font-medium text-muted-foreground">/mês</span>
+              </p>
+              <p className="text-xs text-muted-foreground">Cancele quando quiser.</p>
+            </div>
+            <div className="relative flex flex-col items-center gap-2 rounded-2xl border bg-background p-6 text-center">
+              <span className="absolute -top-3 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground">
+                Melhor custo
+              </span>
+              <p className="text-sm text-muted-foreground">Trimestral</p>
+              <p className="text-4xl font-extrabold">
+                R$200<span className="text-base font-medium text-muted-foreground">/mês</span>
+              </p>
+              <p className="text-xs text-muted-foreground">R$600 a cada 3 meses.</p>
+            </div>
+          </div>
+
           <div className="mt-8 flex flex-col items-center gap-3 rounded-2xl bg-muted/50 p-6 text-center">
             <p className="text-sm text-muted-foreground">
               Valores e condições são fechados direto com a gente — rápido e sem burocracia.
