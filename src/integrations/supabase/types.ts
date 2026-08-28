@@ -315,11 +315,17 @@ export type Database = {
           fornecedor_id: string | null
           id: string
           material_id: string
+          motorista: string | null
+          numero_ticket: number | null
           observacoes: string | null
+          peso_bruto: number | null
           quantidade: number
+          tara: number | null
           tipo: Database["public"]["Enums"]["tipo_movimentacao"]
           updated_at: string
           valor_total: number
+          valor_unitario: number
+          veiculo_placa: string | null
         }
         Insert: {
           cliente_id?: string | null
@@ -330,11 +336,17 @@ export type Database = {
           fornecedor_id?: string | null
           id?: string
           material_id: string
+          motorista?: string | null
+          numero_ticket?: number | null
           observacoes?: string | null
+          peso_bruto?: number | null
           quantidade: number
+          tara?: number | null
           tipo: Database["public"]["Enums"]["tipo_movimentacao"]
           updated_at?: string
           valor_total?: number
+          valor_unitario?: number
+          veiculo_placa?: string | null
         }
         Update: {
           cliente_id?: string | null
@@ -345,11 +357,17 @@ export type Database = {
           fornecedor_id?: string | null
           id?: string
           material_id?: string
+          motorista?: string | null
+          numero_ticket?: number | null
           observacoes?: string | null
+          peso_bruto?: number | null
           quantidade?: number
+          tara?: number | null
           tipo?: Database["public"]["Enums"]["tipo_movimentacao"]
           updated_at?: string
           valor_total?: number
+          valor_unitario?: number
+          veiculo_placa?: string | null
         }
         Relationships: [
           {
