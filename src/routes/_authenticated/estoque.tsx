@@ -70,6 +70,7 @@ function Estoque() {
 
   const [aberto, setAberto] = useState(false);
   const [tipo, setTipo] = useState<"entrada" | "saida">("entrada");
+  const [categoriaMaterialId, setCategoriaMaterialId] = useState("todas");
   const [materialId, setMaterialId] = useState("");
   const [parceiroId, setParceiroId] = useState("");
   const [novoParceiro, setNovoParceiro] = useState("");
