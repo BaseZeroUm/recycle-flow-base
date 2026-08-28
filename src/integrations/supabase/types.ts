@@ -49,6 +49,38 @@ export type Database = {
           },
         ]
       }
+      categorias_material: {
+        Row: {
+          created_at: string
+          empresa_id: string
+          id: string
+          nome: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          empresa_id: string
+          id?: string
+          nome: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          empresa_id?: string
+          id?: string
+          nome?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "categorias_material_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clientes: {
         Row: {
           ativo: boolean
@@ -264,6 +296,7 @@ export type Database = {
       materiais: {
         Row: {
           ativo: boolean
+          categoria_material_id: string | null
           created_at: string
           empresa_id: string
           id: string
@@ -275,6 +308,7 @@ export type Database = {
         }
         Insert: {
           ativo?: boolean
+          categoria_material_id?: string | null
           created_at?: string
           empresa_id: string
           id?: string
@@ -286,6 +320,7 @@ export type Database = {
         }
         Update: {
           ativo?: boolean
+          categoria_material_id?: string | null
           created_at?: string
           empresa_id?: string
           id?: string
@@ -296,6 +331,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "materiais_categoria_material_id_fkey"
+            columns: ["categoria_material_id"]
+            isOneToOne: false
+            referencedRelation: "categorias_material"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "materiais_empresa_id_fkey"
             columns: ["empresa_id"]
