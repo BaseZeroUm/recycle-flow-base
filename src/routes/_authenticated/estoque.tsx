@@ -7,7 +7,14 @@ import { toPng } from "html-to-image";
 import { supabase } from "@/integrations/supabase/client";
 import { PageHeader, StatCard } from "@/components/PageHeader";
 import { brl, dateBR, num } from "@/lib/format";
-import { calcularSaldos, useMateriais, useMovimentacoes, useParceiros, type Movimentacao } from "@/lib/dados";
+import {
+  calcularSaldos,
+  useCategoriasMaterial,
+  useMateriais,
+  useMovimentacoes,
+  useParceiros,
+  type Movimentacao,
+} from "@/lib/dados";
 import { podeFinanceiro, useSessao } from "@/hooks/use-sessao";
 import { TicketPesagem, textoWhatsApp, type DadosTicket } from "@/components/TicketPesagem";
 import { Button } from "@/components/ui/button";
@@ -48,6 +55,7 @@ function Estoque() {
   const queryClient = useQueryClient();
   const { data: sessao } = useSessao();
   const { data: materiais = [] } = useMateriais();
+  const { data: categoriasMaterial = [] } = useCategoriasMaterial();
   const { data: movs = [] } = useMovimentacoes();
   const { data: fornecedores = [] } = useParceiros("fornecedores");
   const { data: clientes = [] } = useParceiros("clientes");
@@ -62,6 +70,7 @@ function Estoque() {
 
   const [aberto, setAberto] = useState(false);
   const [tipo, setTipo] = useState<"entrada" | "saida">("entrada");
+  const [categoriaMaterialId, setCategoriaMaterialId] = useState("todas");
   const [materialId, setMaterialId] = useState("");
   const [parceiroId, setParceiroId] = useState("");
   const [novoParceiro, setNovoParceiro] = useState("");
@@ -84,6 +93,19 @@ function Estoque() {
       ? Number(liquidoManual) || 0
       : Math.max((Number(pesoBruto) || 0) - (Number(tara) || 0), 0);
   const total = liquido * (Number(preco) || 0);
+
+  const materiaisFiltrados =
+    categoriaMaterialId === "todas"
+      ? materiais
+      : materiais.filter((m) => m.categoria_material_id === categoriaMaterialId);
+
+  function selecionarCategoria(id: string) {
+    setCategoriaMaterialId(id);
+    if (id !== "todas") {
+      const m = materiais.find((x) => x.id === materialId);
+      if (m && m.categoria_material_id !== id) setMaterialId("");
+    }
+  }
 
   function selecionarMaterial(id: string) {
     setMaterialId(id);
@@ -326,20 +348,38 @@ function Estoque() {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label>Material</Label>
-                  <Select value={materialId} onValueChange={selecionarMaterial}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {materiais.map((m) => (
-                        <SelectItem key={m.id} value={m.id}>
-                          {m.nome}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label>Categoria do material</Label>
+                    <Select value={categoriaMaterialId} onValueChange={selecionarCategoria}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Todas" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="todas">Todas</SelectItem>
+                        {categoriasMaterial.map((c) => (
+                          <SelectItem key={c.id} value={c.id}>
+                            {c.nome}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Material</Label>
+                    <Select value={materialId} onValueChange={selecionarMaterial}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {materiaisFiltrados.map((m) => (
+                          <SelectItem key={m.id} value={m.id}>
+                            {m.nome}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
                 <div className="space-y-2">
