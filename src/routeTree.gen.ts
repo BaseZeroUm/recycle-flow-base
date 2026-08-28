@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedEstoqueRouteImport } from './routes/_authenticated/estoque'
 import { Route as AuthenticatedFinanceiroRouteImport } from './routes/_authenticated/financeiro'
+import { Route as AuthenticatedFluxoDeCaixaRouteImport } from './routes/_authenticated/fluxo-de-caixa'
 import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
 
 const IndexRoute = IndexRouteImport.update({
@@ -40,6 +41,12 @@ const AuthenticatedFinanceiroRoute = AuthenticatedFinanceiroRouteImport.update({
   path: '/financeiro',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedFluxoDeCaixaRoute =
+  AuthenticatedFluxoDeCaixaRouteImport.update({
+    id: '/fluxo-de-caixa',
+    path: '/fluxo-de-caixa',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedPainelRoute = AuthenticatedPainelRouteImport.update({
   id: '/painel',
   path: '/painel',
@@ -51,6 +58,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/estoque': typeof AuthenticatedEstoqueRoute
   '/financeiro': typeof AuthenticatedFinanceiroRoute
+  '/fluxo-de-caixa': typeof AuthenticatedFluxoDeCaixaRoute
   '/painel': typeof AuthenticatedPainelRoute
 }
 export interface FileRoutesByTo {
@@ -58,6 +66,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/estoque': typeof AuthenticatedEstoqueRoute
   '/financeiro': typeof AuthenticatedFinanceiroRoute
+  '/fluxo-de-caixa': typeof AuthenticatedFluxoDeCaixaRoute
   '/painel': typeof AuthenticatedPainelRoute
 }
 export interface FileRoutesById {
@@ -67,13 +76,15 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/_authenticated/estoque': typeof AuthenticatedEstoqueRoute
   '/_authenticated/financeiro': typeof AuthenticatedFinanceiroRoute
+  '/_authenticated/fluxo-de-caixa': typeof AuthenticatedFluxoDeCaixaRoute
   '/_authenticated/painel': typeof AuthenticatedPainelRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/estoque' | '/financeiro' | '/painel'
+  fullPaths:
+    '/' | '/auth' | '/estoque' | '/financeiro' | '/fluxo-de-caixa' | '/painel'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/estoque' | '/financeiro' | '/painel'
+  to: '/' | '/auth' | '/estoque' | '/financeiro' | '/fluxo-de-caixa' | '/painel'
   id:
     | '__root__'
     | '/'
@@ -81,6 +92,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/_authenticated/estoque'
     | '/_authenticated/financeiro'
+    | '/_authenticated/fluxo-de-caixa'
     | '/_authenticated/painel'
   fileRoutesById: FileRoutesById
 }
@@ -127,6 +139,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedFinanceiroRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/fluxo-de-caixa': {
+      id: '/_authenticated/fluxo-de-caixa'
+      path: '/fluxo-de-caixa'
+      fullPath: '/fluxo-de-caixa'
+      preLoaderRoute: typeof AuthenticatedFluxoDeCaixaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/painel': {
       id: '/_authenticated/painel'
       path: '/painel'
@@ -140,12 +159,14 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedEstoqueRoute: typeof AuthenticatedEstoqueRoute
   AuthenticatedFinanceiroRoute: typeof AuthenticatedFinanceiroRoute
+  AuthenticatedFluxoDeCaixaRoute: typeof AuthenticatedFluxoDeCaixaRoute
   AuthenticatedPainelRoute: typeof AuthenticatedPainelRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedEstoqueRoute: AuthenticatedEstoqueRoute,
   AuthenticatedFinanceiroRoute: AuthenticatedFinanceiroRoute,
+  AuthenticatedFluxoDeCaixaRoute: AuthenticatedFluxoDeCaixaRoute,
   AuthenticatedPainelRoute: AuthenticatedPainelRoute,
 }
 
