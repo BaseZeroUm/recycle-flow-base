@@ -77,6 +77,7 @@ function Estoque() {
           fornecedor_id: tipo === "entrada" ? parceiroId || null : null,
           cliente_id: tipo === "saida" ? parceiroId || null : null,
           quantidade: Number(quantidade),
+          valor_unitario: Number(preco) || 0,
           valor_total: valorTotal,
           data,
           observacoes: observacoes || null,
