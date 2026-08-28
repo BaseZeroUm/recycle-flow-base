@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Download, Plus, Search, Share2, Ticket as TicketIcon } from "lucide-react";
+import { Download, Plus, Printer, Search, Share2, Ticket as TicketIcon } from "lucide-react";
 import { toPng } from "html-to-image";
 import { supabase } from "@/integrations/supabase/client";
 import { PageHeader, StatCard } from "@/components/PageHeader";
@@ -69,8 +69,6 @@ function Estoque() {
   const [tara, setTara] = useState("");
   const [liquidoManual, setLiquidoManual] = useState("");
   const [preco, setPreco] = useState("");
-  const [placa, setPlaca] = useState("");
-  const [motorista, setMotorista] = useState("");
   const [data, setData] = useState(new Date().toISOString().slice(0, 10));
   const [observacoes, setObservacoes] = useState("");
   const [busca, setBusca] = useState("");
@@ -132,8 +130,6 @@ function Estoque() {
           tara: tara === "" ? null : Number(tara),
           valor_unitario: Number(preco) || 0,
           valor_total: total,
-          veiculo_placa: placa || null,
-          motorista: motorista || null,
           data,
           observacoes: observacoes || null,
           criado_por: sessao.userId,
@@ -166,8 +162,6 @@ function Estoque() {
       setPesoBruto("");
       setTara("");
       setLiquidoManual("");
-      setPlaca("");
-      setMotorista("");
       setObservacoes("");
       setNovoParceiro("");
       setTicketAberto(mov);
@@ -249,6 +243,50 @@ function Estoque() {
     });
   }, [busca, movs, materiais, fornecedores, clientes]);
 
+  function imprimirLista() {
+    const linhas = filtrados
+      .map((m) => {
+        const mat = materiais.find((x) => x.id === m.material_id)?.nome ?? "—";
+        return `<tr><td>#${m.numero_ticket ?? "—"}</td><td>${dateBR(m.data)}</td><td>${
+          m.tipo === "entrada" ? "Entrada" : "Saída"
+        }</td><td>${mat}</td><td>${nomeParceiro(m)}</td><td class="r">${num(m.quantidade)}</td><td class="r">${brl(
+          m.valor_total,
+        )}</td></tr>`;
+      })
+      .join("");
+    const totalValor = filtrados.reduce((s2, m) => s2 + Number(m.valor_total), 0);
+    const totalPeso = filtrados.reduce((s2, m) => s2 + Number(m.quantidade), 0);
+    const html = `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
+      <title>Movimentacoes-${new Date().toISOString().slice(0, 10)}</title>
+      <style>
+        body{font-family:ui-sans-serif,system-ui,Arial,sans-serif;color:#111;margin:24px}
+        h1{font-size:18px;margin:0 0 4px}
+        p{font-size:12px;color:#555;margin:0 0 16px}
+        table{width:100%;border-collapse:collapse;font-size:12px}
+        th,td{border-bottom:1px solid #ddd;padding:6px 8px;text-align:left}
+        th{background:#f3f4f6}
+        .r{text-align:right}
+        tfoot td{font-weight:700;border-top:2px solid #111}
+        @page{size:A4;margin:14mm}
+      </style></head><body>
+      <h1>${empresa?.razao_social ?? sessao?.empresaNome ?? "Empresa"} — Movimentações e tickets</h1>
+      <p>Emitido em ${new Date().toLocaleString("pt-BR")}${busca ? ` · filtro: "${busca}"` : ""}</p>
+      <table><thead><tr><th>Ticket</th><th>Data</th><th>Tipo</th><th>Material</th><th>Fornecedor / cliente</th><th class="r">Peso líq.</th><th class="r">Valor</th></tr></thead>
+      <tbody>${linhas || '<tr><td colspan="7">Nenhuma movimentação.</td></tr>'}</tbody>
+      <tfoot><tr><td colspan="5">Total (${filtrados.length})</td><td class="r">${num(totalPeso)}</td><td class="r">${brl(
+        totalValor,
+      )}</td></tr></tfoot></table>
+      <script>window.onload=function(){window.print()}<\/script>
+      </body></html>`;
+    const w = window.open("", "_blank", "noopener,width=900,height=700");
+    if (!w) {
+      toast.error("Permita pop-ups para gerar o PDF");
+      return;
+    }
+    w.document.write(html);
+    w.document.close();
+  }
+
   const valorEstoque = saldos.reduce((s, x) => s + x.valorEstoque, 0);
   const qtdEstoque = saldos.reduce((s, x) => s + Math.max(x.saldoQtd, 0), 0);
 
@@ -325,17 +363,6 @@ function Estoque() {
                       onChange={(e) => setNovoParceiro(e.target.value)}
                     />
                   )}
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-2">
-                    <Label>Veículo / placa</Label>
-                    <Input value={placa} onChange={(e) => setPlaca(e.target.value)} placeholder="ABC-1D23" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Motorista</Label>
-                    <Input value={motorista} onChange={(e) => setMotorista(e.target.value)} />
-                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
@@ -418,6 +445,9 @@ function Estoque() {
                 value={busca}
                 onChange={(e) => setBusca(e.target.value)}
               />
+              <Button size="sm" variant="outline" onClick={imprimirLista} className="shrink-0">
+                <Printer className="h-4 w-4" /> Imprimir / PDF
+              </Button>
             </div>
             <Table>
               <TableHeader>
