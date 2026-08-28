@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -77,6 +77,7 @@ function Estoque() {
           fornecedor_id: tipo === "entrada" ? parceiroId || null : null,
           cliente_id: tipo === "saida" ? parceiroId || null : null,
           quantidade: Number(quantidade),
+          valor_unitario: Number(preco) || 0,
           valor_total: valorTotal,
           data,
           observacoes: observacoes || null,
@@ -265,6 +266,7 @@ function Estoque() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>Ticket</TableHead>
                   <TableHead>Data</TableHead>
                   <TableHead>Tipo</TableHead>
                   <TableHead>Material</TableHead>
@@ -275,13 +277,18 @@ function Estoque() {
               <TableBody>
                 {movs.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={5} className="py-10 text-center text-sm text-muted-foreground">
+                    <TableCell colSpan={6} className="py-10 text-center text-sm text-muted-foreground">
                       Nenhuma movimentação registrada.
                     </TableCell>
                   </TableRow>
                 )}
                 {movs.map((m) => (
                   <TableRow key={m.id}>
+                    <TableCell>
+                      <Link to="/pesagem" className="font-semibold text-primary hover:underline">
+                        #{m.numero_ticket ?? "—"}
+                      </Link>
+                    </TableCell>
                     <TableCell>{dateBR(m.data)}</TableCell>
                     <TableCell>
                       <Badge variant={m.tipo === "entrada" ? "secondary" : "default"}>
