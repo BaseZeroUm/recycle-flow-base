@@ -35,6 +35,13 @@ export interface Movimentacao {
   valor_total: number;
   data: string;
   observacoes: string | null;
+  numero_ticket: number | null;
+  peso_bruto: number | null;
+  tara: number | null;
+  valor_unitario: number;
+  veiculo_placa: string | null;
+  motorista: string | null;
+  created_at?: string;
 }
 
 export interface Lancamento {
