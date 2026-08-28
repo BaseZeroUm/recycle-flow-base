@@ -7,7 +7,14 @@ import { toPng } from "html-to-image";
 import { supabase } from "@/integrations/supabase/client";
 import { PageHeader, StatCard } from "@/components/PageHeader";
 import { brl, dateBR, num } from "@/lib/format";
-import { calcularSaldos, useMateriais, useMovimentacoes, useParceiros, type Movimentacao } from "@/lib/dados";
+import {
+  calcularSaldos,
+  useCategoriasMaterial,
+  useMateriais,
+  useMovimentacoes,
+  useParceiros,
+  type Movimentacao,
+} from "@/lib/dados";
 import { podeFinanceiro, useSessao } from "@/hooks/use-sessao";
 import { TicketPesagem, textoWhatsApp, type DadosTicket } from "@/components/TicketPesagem";
 import { Button } from "@/components/ui/button";
@@ -48,6 +55,7 @@ function Estoque() {
   const queryClient = useQueryClient();
   const { data: sessao } = useSessao();
   const { data: materiais = [] } = useMateriais();
+  const { data: categoriasMaterial = [] } = useCategoriasMaterial();
   const { data: movs = [] } = useMovimentacoes();
   const { data: fornecedores = [] } = useParceiros("fornecedores");
   const { data: clientes = [] } = useParceiros("clientes");
