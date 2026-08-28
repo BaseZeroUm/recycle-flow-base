@@ -12,7 +12,7 @@ export const dateBR = (v: string | null | undefined) =>
 export const monthKey = (v: string) => v.slice(0, 7);
 
 export const monthLabel = (key: string) => {
-  const [y, m] = key.split("-");
+  const [y = "", m = ""] = key.split("-");
   return `${m}/${y.slice(2)}`;
 };
 
