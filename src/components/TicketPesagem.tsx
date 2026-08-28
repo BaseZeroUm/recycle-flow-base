@@ -1,5 +1,5 @@
 import { forwardRef } from "react";
-import logoUrl from "@/assets/base01-logo.png";
+import logoAsset from "@/assets/base01-logo-full.png.asset.json";
 import { brl, dateBR, num } from "@/lib/format";
 import type { Movimentacao } from "@/lib/dados";
 
