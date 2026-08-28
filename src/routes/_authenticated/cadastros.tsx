@@ -2,11 +2,11 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Plus } from "lucide-react";
+import { Plus, RotateCcw, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { PageHeader } from "@/components/PageHeader";
 import { brl } from "@/lib/format";
-import { useCategorias, useMateriais, useParceiros } from "@/lib/dados";
+import { useCategorias, useCategoriasMaterial, useMateriais, useParceiros } from "@/lib/dados";
 import { useSessao } from "@/hooks/use-sessao";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -515,7 +515,7 @@ function Categorias() {
 function Bloco({ acao, children }: { acao: React.ReactNode; children: React.ReactNode }) {
   return (
     <div className="overflow-hidden rounded-2xl border bg-card shadow-card">
-      <div className="flex justify-end border-b p-3">{acao}</div>
+      <div className="flex flex-wrap justify-end gap-2 border-b p-3">{acao}</div>
       {children}
     </div>
   );
