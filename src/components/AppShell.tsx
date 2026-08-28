@@ -8,6 +8,7 @@ import {
   FileSpreadsheet,
   LayoutDashboard,
   LogOut,
+  Scale,
   Users,
   Wallet,
   LineChart,
