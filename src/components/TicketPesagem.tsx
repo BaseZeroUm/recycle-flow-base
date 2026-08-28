@@ -33,7 +33,7 @@ export const TicketPesagem = forwardRef<HTMLDivElement, { dados: DadosTicket }>(
   return (
     <div ref={ref} className="w-full max-w-md bg-card p-6 text-foreground">
       <div className="flex items-center justify-between gap-4 border-b pb-4">
-        <img src={logoUrl} alt="Base 01" className="h-10 w-auto" />
+        <img src={logoAsset.url} alt="Base 01" className="h-10 w-auto" />
         <div className="text-right">
           <div className="text-sm font-semibold leading-tight">{empresaNome}</div>
           {dados.empresaCnpj && <div className="text-xs text-muted-foreground">CNPJ {dados.empresaCnpj}</div>}
