@@ -8,6 +8,12 @@ export interface Material {
   preco_compra: number;
   preco_venda: number;
   ativo: boolean;
+  categoria_material_id: string | null;
+}
+
+export interface CategoriaMaterial {
+  id: string;
+  nome: string;
 }
 
 export interface Parceiro {
@@ -57,13 +63,26 @@ export interface Lancamento {
   imposto: boolean;
 }
 
-export function useMateriais() {
+export function useMateriais(incluirInativos = false) {
   return useQuery<Material[]>({
-    queryKey: ["materiais"],
+    queryKey: ["materiais", incluirInativos],
     queryFn: async () => {
-      const { data, error } = await supabase.from("materiais").select("*").order("nome");
+      let q = supabase.from("materiais").select("*").order("nome");
+      if (!incluirInativos) q = q.eq("ativo", true);
+      const { data, error } = await q;
       if (error) throw error;
       return (data ?? []) as Material[];
+    },
+  });
+}
+
+export function useCategoriasMaterial() {
+  return useQuery<CategoriaMaterial[]>({
+    queryKey: ["categorias_material"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("categorias_material").select("id, nome").order("nome");
+      if (error) throw error;
+      return (data ?? []) as CategoriaMaterial[];
     },
   });
 }
