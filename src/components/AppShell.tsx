@@ -45,8 +45,7 @@ const grupos: { label: string; itens: Item[] }[] = [
   {
     label: "Operação",
     itens: [
-      { title: "Pesagem / Tickets", url: "/pesagem", icon: Scale, acesso: "todos" },
-      { title: "Estoque", url: "/estoque", icon: Boxes, acesso: "todos" },
+      { title: "Estoque e pesagem", url: "/estoque", icon: Scale, acesso: "todos" },
       { title: "Financeiro", url: "/financeiro", icon: Wallet, acesso: "financeiro" },
     ],
   },
