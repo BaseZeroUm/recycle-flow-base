@@ -34,9 +34,14 @@ function Index() {
     <div className="min-h-screen bg-background">
       <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
         <LogoFull />
-        <Button asChild size="sm">
-          <Link to="/auth">Entrar</Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button asChild size="sm" variant="ghost">
+            <Link to="/assinatura">Assinatura</Link>
+          </Button>
+          <Button asChild size="sm">
+            <Link to="/auth">Entrar</Link>
+          </Button>
+        </div>
       </header>
 
       <main className="mx-auto max-w-6xl px-6 pb-24">
