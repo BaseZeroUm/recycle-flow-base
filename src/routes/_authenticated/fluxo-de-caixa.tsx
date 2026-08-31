@@ -20,6 +20,7 @@ import { useLancamentos } from "@/lib/dados";
 import { podeFinanceiro, useSessao } from "@/hooks/use-sessao";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { FiltroPeriodo, hojeIso, inicioDoMesAtual, periodoLabel } from "@/components/FiltroPeriodo";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export const Route = createFileRoute("/_authenticated/fluxo-de-caixa")({
@@ -35,24 +36,20 @@ export const Route = createFileRoute("/_authenticated/fluxo-de-caixa")({
 });
 
 function Fluxo() {
-  const [meses, setMeses] = useState("6");
+  const [de, setDe] = useState(inicioDoMesAtual());
+  const [ate, setAte] = useState(hojeIso());
   const [base, setBase] = useState<"pago" | "previsto">("pago");
   const { data: sessao } = useSessao();
   const autorizado = podeFinanceiro(sessao);
   const { data: lancs = [] } = useLancamentos(autorizado);
 
-  const limite = useMemo(() => {
-    const d = new Date();
-    d.setMonth(d.getMonth() - (Number(meses) - 1));
-    d.setDate(1);
-    return d.toISOString().slice(0, 10);
-  }, [meses]);
+  const noPeriodo = (dataRef: string) => dataRef >= de && dataRef <= ate;
 
   const linhas = useMemo(() => {
     const mapa = new Map<string, { mes: string; entradas: number; saidas: number }>();
     lancs.forEach((l) => {
       const dataRef = base === "pago" ? l.data_pagamento : l.data_vencimento;
-      if (!dataRef || dataRef < limite) return;
+      if (!dataRef || !noPeriodo(dataRef)) return;
       if (base === "pago" && l.status !== "pago") return;
       const k = monthKey(dataRef);
       const item = mapa.get(k) ?? { mes: k, entradas: 0, saidas: 0 };
@@ -98,7 +95,7 @@ function Fluxo() {
     imprimirRelatorio({
       titulo: `${sessao?.empresaNome ?? "Empresa"} — Fluxo de caixa`,
       nomeArquivo: "Fluxo-de-caixa",
-      subtitulo: `Base ${base === "pago" ? "realizada" : "prevista"} · ${meses === "1" ? "este mês" : `últimos ${meses} meses`} · emitido em ${new Date().toLocaleString("pt-BR")}`,
+      subtitulo: `Base ${base === "pago" ? "realizada" : "prevista"} · Período: ${periodoLabel(de, ate)} · emitido em ${new Date().toLocaleString("pt-BR")}`,
       corpo,
     });
   }
@@ -122,17 +119,7 @@ function Fluxo() {
                 <SelectItem value="previsto">Previsto</SelectItem>
               </SelectContent>
             </Select>
-            <Select value={meses} onValueChange={setMeses}>
-              <SelectTrigger className="w-44">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="1">Este mês</SelectItem>
-                <SelectItem value="3">Últimos 3 meses</SelectItem>
-                <SelectItem value="6">Últimos 6 meses</SelectItem>
-                <SelectItem value="12">Últimos 12 meses</SelectItem>
-              </SelectContent>
-            </Select>
+            <FiltroPeriodo de={de} ate={ate} onChange={(d, a) => { setDe(d); setAte(a); }} />
           </>
         }
       />

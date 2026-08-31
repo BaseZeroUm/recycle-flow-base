@@ -7,7 +7,7 @@ import { imprimirRelatorio } from "@/lib/impressao";
 import { calcularSaldos, useCategorias, useLancamentos, useMateriais, useMovimentacoes } from "@/lib/dados";
 import { podeFinanceiro, useSessao } from "@/hooks/use-sessao";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { FiltroPeriodo, hojeIso, inicioDoMesAtual, periodoLabel } from "@/components/FiltroPeriodo";
 
 export const Route = createFileRoute("/_authenticated/dre")({
   head: () => ({
@@ -28,7 +28,8 @@ export function linhaClasse(destaque?: boolean) {
 }
 
 function Dre() {
-  const [meses, setMeses] = useState("6");
+  const [de, setDe] = useState(inicioDoMesAtual());
+  const [ate, setAte] = useState(hojeIso());
   const { data: sessao } = useSessao();
   const autorizado = podeFinanceiro(sessao);
   const { data: lancs = [] } = useLancamentos(autorizado);
@@ -36,12 +37,6 @@ function Dre() {
   const { data: materiais = [] } = useMateriais();
   const { data: movs = [] } = useMovimentacoes();
 
-  const limite = useMemo(() => {
-    const d = new Date();
-    d.setMonth(d.getMonth() - (Number(meses) - 1));
-    d.setDate(1);
-    return d.toISOString().slice(0, 10);
-  }, [meses]);
 
   if (!autorizado) {
     return (
@@ -54,7 +49,7 @@ function Dre() {
     );
   }
 
-  const noPeriodo = lancs.filter((l) => l.data_vencimento >= limite);
+  const noPeriodo = lancs.filter((l) => l.data_vencimento >= de && l.data_vencimento <= ate);
   const receitaBruta = noPeriodo.filter((l) => l.tipo === "receita").reduce((s, l) => s + Number(l.valor), 0);
   const impostos = noPeriodo.filter((l) => l.tipo === "despesa" && l.imposto).reduce((s, l) => s + Number(l.valor), 0);
   const receitaLiquida = receitaBruta - impostos;
@@ -118,7 +113,7 @@ function Dre() {
     imprimirRelatorio({
       titulo: `${sessao?.empresaNome ?? "Empresa"} — DRE`,
       nomeArquivo: "DRE",
-      subtitulo: `Período: ${meses === "1" ? "este mês" : `últimos ${meses} meses`} · emitido em ${new Date().toLocaleString("pt-BR")}`,
+      subtitulo: `Período: ${periodoLabel(de, ate)} · emitido em ${new Date().toLocaleString("pt-BR")}`,
       corpo,
     });
   }
@@ -133,17 +128,7 @@ function Dre() {
             <Button size="sm" variant="outline" onClick={imprimir} className="shrink-0">
               <Printer className="h-4 w-4" /> Imprimir / PDF
             </Button>
-            <Select value={meses} onValueChange={setMeses}>
-              <SelectTrigger className="w-44">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="1">Este mês</SelectItem>
-                <SelectItem value="3">Últimos 3 meses</SelectItem>
-                <SelectItem value="6">Últimos 6 meses</SelectItem>
-                <SelectItem value="12">Últimos 12 meses</SelectItem>
-              </SelectContent>
-            </Select>
+            <FiltroPeriodo de={de} ate={ate} onChange={(d, a) => { setDe(d); setAte(a); }} />
           </>
         }
       />
