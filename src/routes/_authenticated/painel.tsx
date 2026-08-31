@@ -125,6 +125,116 @@ function Painel() {
     return [...mapa.entries()].map(([nome, valor]) => ({ nome, valor }));
   }, [lancsPeriodo, categorias]);
 
+  // ============= Insights automáticos =============
+  const insights = useMemo(() => {
+    const lista: { tipo: "bom" | "ruim" | "neutro"; icone: "tendencia" | "alerta" | "ideia" | "parceiros"; titulo: string; texto: string }[] = [];
+    const hoje = new Date().toISOString().slice(0, 10);
+
+    // Margem por material (período): venda - custo médio de compra
+    const margens = new Map<string, { nome: string; lucro: number; receita: number }>();
+    materiais.forEach((mat) => {
+      const mvs = movsPeriodo.filter((m) => m.material_id === mat.id);
+      const qtdE = mvs.filter((m) => m.tipo === "entrada").reduce((s, m) => s + Number(m.quantidade), 0);
+      const valE = mvs.filter((m) => m.tipo === "entrada").reduce((s, m) => s + Number(m.valor_total), 0);
+      const qtdS = mvs.filter((m) => m.tipo === "saida").reduce((s, m) => s + Number(m.quantidade), 0);
+      const valS = mvs.filter((m) => m.tipo === "saida").reduce((s, m) => s + Number(m.valor_total), 0);
+      if (qtdS === 0) return;
+      const custoMedio = qtdE > 0 ? valE / qtdE : 0;
+      const lucro = valS - custoMedio * qtdS;
+      margens.set(mat.id, { nome: mat.nome, lucro, receita: valS });
+    });
+    const ranking = [...margens.values()].sort((a, b) => b.lucro - a.lucro);
+    const destaque = ranking[0];
+    const pior = ranking.filter((r) => r.receita > 0).at(-1);
+    if (financeiro && destaque && destaque.lucro > 0) {
+      lista.push({
+        tipo: "bom",
+        icone: "ideia",
+        titulo: "Material mais lucrativo",
+        texto: `${destaque.nome} gerou ${brl(destaque.lucro)} de lucro no período.`,
+      });
+    }
+    if (financeiro && pior && pior.lucro < 0 && ranking.length > 1) {
+      lista.push({
+        tipo: "ruim",
+        icone: "alerta",
+        titulo: "Margem negativa",
+        texto: `${pior.nome} está sendo vendido abaixo do custo médio (${brl(pior.lucro)}). Revise o preço.`,
+      });
+    }
+
+    // Tendência de receita: mês atual vs anterior
+    if (financeiro) {
+      const chaveAtual = monthKey(hoje);
+      const anterior = new Date();
+      anterior.setMonth(anterior.getMonth() - 1);
+      const chaveAnterior = monthKey(anterior.toISOString().slice(0, 10));
+      const rec = (k: string) =>
+        lancs.filter((l) => l.tipo === "receita" && monthKey(l.data_vencimento) === k).reduce((s, l) => s + Number(l.valor), 0);
+      const atual = rec(chaveAtual);
+      const antes = rec(chaveAnterior);
+      if (antes > 0) {
+        const variacao = ((atual - antes) / antes) * 100;
+        lista.push({
+          tipo: variacao >= 0 ? "bom" : "ruim",
+          icone: "tendencia",
+          titulo: "Tendência de faturamento",
+          texto: `Este mês ${variacao >= 0 ? "cresceu" : "caiu"} ${Math.abs(variacao).toFixed(0)}% em relação ao mês passado (${brl(antes)} → ${brl(atual)}).`,
+        });
+      }
+    }
+
+    // Top cliente e fornecedor do período
+    const porParceiro = (campo: "cliente_id" | "fornecedor_id", tipo: "saida" | "entrada") => {
+      const mapa = new Map<string, number>();
+      movsPeriodo
+        .filter((m) => m.tipo === tipo && m[campo])
+        .forEach((m) => mapa.set(m[campo]!, (mapa.get(m[campo]!) ?? 0) + Number(m.valor_total)));
+      return [...mapa.entries()].sort((a, b) => b[1] - a[1])[0];
+    };
+    const topCliente = porParceiro("cliente_id", "saida");
+    const topFornecedor = porParceiro("fornecedor_id", "entrada");
+    if (topCliente) {
+      const nome = clientes.find((c) => c.id === topCliente[0])?.nome ?? "—";
+      lista.push({ tipo: "neutro", icone: "parceiros", titulo: "Cliente em destaque", texto: `${nome} representa ${brl(topCliente[1])} em vendas no período.` });
+    }
+    if (topFornecedor) {
+      const nome = fornecedores.find((f) => f.id === topFornecedor[0])?.nome ?? "—";
+      lista.push({ tipo: "neutro", icone: "parceiros", titulo: "Principal fornecedor", texto: `${nome} respondeu por ${brl(topFornecedor[1])} em compras no período.` });
+    }
+
+    // Alerta: contas atrasadas
+    if (financeiro) {
+      const atrasados = lancs.filter((l) => l.status !== "pago" && l.data_vencimento < hoje);
+      const totalAtraso = atrasados.reduce((s, l) => s + Number(l.valor), 0);
+      if (atrasados.length > 0) {
+        lista.push({
+          tipo: "ruim",
+          icone: "alerta",
+          titulo: "Contas atrasadas",
+          texto: `${atrasados.length} lançamento(s) vencidos somando ${brl(totalAtraso)}.`,
+        });
+      }
+    }
+
+    // Alerta: estoque parado (saldo sem saída no período)
+    const parados = saldos.filter(
+      (s) =>
+        s.saldoQtd > 0 &&
+        !movsPeriodo.some((m) => m.material_id === s.material.id && m.tipo === "saida"),
+    );
+    if (parados.length > 0) {
+      lista.push({
+        tipo: "neutro",
+        icone: "ideia",
+        titulo: "Estoque parado",
+        texto: `${parados.map((p) => p.material.nome).slice(0, 3).join(", ")}${parados.length > 3 ? " e outros" : ""} sem saída no período.`,
+      });
+    }
+
+    return lista.slice(0, 6);
+  }, [financeiro, materiais, movsPeriodo, lancs, saldos, clientes, fornecedores]);
+
   const cores = [
     "var(--chart-1)",
     "var(--chart-2)",
