@@ -118,7 +118,7 @@ function Dre() {
     imprimirRelatorio({
       titulo: `${sessao?.empresaNome ?? "Empresa"} — DRE`,
       nomeArquivo: "DRE",
-      subtitulo: `Período: últimos ${meses} mês(es) · emitido em ${new Date().toLocaleString("pt-BR")}`,
+      subtitulo: `Período: ${meses === "1" ? "este mês" : `últimos ${meses} meses`} · emitido em ${new Date().toLocaleString("pt-BR")}`,
       corpo,
     });
   }

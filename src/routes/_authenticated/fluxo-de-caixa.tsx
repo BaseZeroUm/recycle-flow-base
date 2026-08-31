@@ -98,7 +98,7 @@ function Fluxo() {
     imprimirRelatorio({
       titulo: `${sessao?.empresaNome ?? "Empresa"} — Fluxo de caixa`,
       nomeArquivo: "Fluxo-de-caixa",
-      subtitulo: `Base ${base === "pago" ? "realizada" : "prevista"} · últimos ${meses} mês(es) · emitido em ${new Date().toLocaleString("pt-BR")}`,
+      subtitulo: `Base ${base === "pago" ? "realizada" : "prevista"} · ${meses === "1" ? "este mês" : `últimos ${meses} meses`} · emitido em ${new Date().toLocaleString("pt-BR")}`,
       corpo,
     });
   }
