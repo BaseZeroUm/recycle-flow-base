@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AssinaturaRouteImport } from './routes/assinatura'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as RedefinirSenhaRouteImport } from './routes/redefinir-senha'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as AuthenticatedCadastrosRouteImport } from './routes/_authenticated/cadastros'
 import { Route as AuthenticatedCaixaRouteImport } from './routes/_authenticated/caixa'
 import { Route as AuthenticatedDreRouteImport } from './routes/_authenticated/dre'
@@ -47,6 +48,11 @@ const AuthRoute = AuthRouteImport.update({
 const RedefinirSenhaRoute = RedefinirSenhaRouteImport.update({
   id: '/redefinir-senha',
   path: '/redefinir-senha',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedCadastrosRoute = AuthenticatedCadastrosRouteImport.update({
@@ -106,6 +112,7 @@ export interface FileRoutesByFullPath {
   '/assinatura': typeof AssinaturaRoute
   '/auth': typeof AuthRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/cadastros': typeof AuthenticatedCadastrosRoute
   '/caixa': typeof AuthenticatedCaixaRoute
   '/dre': typeof AuthenticatedDreRoute
@@ -122,6 +129,7 @@ export interface FileRoutesByTo {
   '/assinatura': typeof AssinaturaRoute
   '/auth': typeof AuthRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/cadastros': typeof AuthenticatedCadastrosRoute
   '/caixa': typeof AuthenticatedCaixaRoute
   '/dre': typeof AuthenticatedDreRoute
@@ -140,6 +148,7 @@ export interface FileRoutesById {
   '/assinatura': typeof AssinaturaRoute
   '/auth': typeof AuthRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/cadastros': typeof AuthenticatedCadastrosRoute
   '/_authenticated/caixa': typeof AuthenticatedCaixaRoute
   '/_authenticated/dre': typeof AuthenticatedDreRoute
@@ -158,6 +167,7 @@ export interface FileRouteTypes {
     | '/assinatura'
     | '/auth'
     | '/redefinir-senha'
+    | '/sitemap.xml'
     | '/cadastros'
     | '/caixa'
     | '/dre'
@@ -174,6 +184,7 @@ export interface FileRouteTypes {
     | '/assinatura'
     | '/auth'
     | '/redefinir-senha'
+    | '/sitemap.xml'
     | '/cadastros'
     | '/caixa'
     | '/dre'
@@ -191,6 +202,7 @@ export interface FileRouteTypes {
     | '/assinatura'
     | '/auth'
     | '/redefinir-senha'
+    | '/sitemap.xml'
     | '/_authenticated/cadastros'
     | '/_authenticated/caixa'
     | '/_authenticated/dre'
@@ -209,6 +221,7 @@ export interface RootRouteChildren {
   AssinaturaRoute: typeof AssinaturaRoute
   AuthRoute: typeof AuthRoute
   RedefinirSenhaRoute: typeof RedefinirSenhaRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -246,6 +259,13 @@ declare module '@tanstack/react-router' {
       path: '/redefinir-senha'
       fullPath: '/redefinir-senha'
       preLoaderRoute: typeof RedefinirSenhaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/cadastros': {
@@ -356,6 +376,7 @@ const rootRouteChildren: RootRouteChildren = {
   AssinaturaRoute: AssinaturaRoute,
   AuthRoute: AuthRoute,
   RedefinirSenhaRoute: RedefinirSenhaRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
