@@ -57,6 +57,8 @@ function Painel() {
   const { data: movs = [] } = useMovimentacoes();
   const { data: lancs = [] } = useLancamentos(financeiro);
   const { data: categorias = [] } = useCategorias();
+  const { data: fornecedores = [] } = useParceiros("fornecedores");
+  const { data: clientes = [] } = useParceiros("clientes");
 
   const limite = useMemo(() => {
     const d = new Date();
