@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowUpRight, BarChart3, Boxes, LineChart, Wallet } from "lucide-react";
+import { ArrowUpRight, BarChart3, Boxes, Factory, LineChart, Wallet } from "lucide-react";
 import { LogoFull } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 
@@ -27,6 +27,7 @@ const modulos = [
   { icon: Wallet, titulo: "Financeiro", texto: "Receitas, despesas, contas a pagar e a receber com vencimentos." },
   { icon: LineChart, titulo: "Fluxo de caixa", texto: "Entradas, saídas, saldo acumulado e projeção do que está por vir." },
   { icon: BarChart3, titulo: "DRE automática", texto: "Da receita bruta ao lucro líquido, gerada dos seus lançamentos." },
+  { icon: Factory, titulo: "Produção", texto: "Entrada × saída, giro de estoque, margem por material e impacto reciclado." },
 ];
 
 function Index() {
@@ -66,7 +67,7 @@ function Index() {
           </div>
         </section>
 
-        <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           {modulos.map((m) => (
             <div key={m.titulo} className="rounded-2xl border bg-card p-6 shadow-card">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-gradient">
