@@ -2,6 +2,10 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowUpRight, BarChart3, Boxes, Factory, LineChart, Wallet } from "lucide-react";
 import { LogoFull } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
+import demoPainel from "@/assets/demo-painel.png";
+import demoEstoque from "@/assets/demo-estoque.png";
+import demoProducao from "@/assets/demo-producao.png";
+import demoFinanceiro from "@/assets/demo-financeiro.png";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -28,6 +32,33 @@ const modulos = [
   { icon: LineChart, titulo: "Fluxo de caixa", texto: "Entradas, saídas, saldo acumulado e projeção do que está por vir." },
   { icon: BarChart3, titulo: "DRE automática", texto: "Da receita bruta ao lucro líquido, gerada dos seus lançamentos." },
   { icon: Factory, titulo: "Produção", texto: "Entrada × saída, giro de estoque, margem por material e impacto reciclado." },
+];
+
+const telas = [
+  {
+    imagem: demoPainel,
+    alt: "Painel do sistema com indicadores de receita, caixa, estoque e insights automáticos",
+    titulo: "Painel com insights automáticos",
+    texto: "Receita, saldo, estoque e alertas de margem e atraso — sem você precisar procurar.",
+  },
+  {
+    imagem: demoEstoque,
+    alt: "Tela de estoque e pesagem com tickets de movimentação e saldo por material",
+    titulo: "Pesagem e estoque na mesma tela",
+    texto: "Lançou na balança, saiu o ticket, atualizou o saldo e o financeiro. Tudo junto.",
+  },
+  {
+    imagem: demoProducao,
+    alt: "Página de produção com gráficos de entrada e saída de material",
+    titulo: "Produção medida de verdade",
+    texto: "Volume processado, giro e margem por material direto dos tickets de pesagem.",
+  },
+  {
+    imagem: demoFinanceiro,
+    alt: "Tela do financeiro com contas a pagar e a receber",
+    titulo: "Financeiro sob controle",
+    texto: "Contas a pagar e a receber, atrasos e baixas — com relatório em PDF em um clique.",
+  },
 ];
 
 function Index() {
@@ -77,6 +108,44 @@ function Index() {
               <p className="mt-2 text-sm text-muted-foreground">{m.texto}</p>
             </div>
           ))}
+        </section>
+
+        <section className="mt-24">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+            Por dentro do sistema
+          </p>
+          <h2 className="mt-4 max-w-2xl text-3xl font-extrabold leading-tight md:text-4xl">
+            Veja o Base 01 em operação
+          </h2>
+          <p className="mt-4 max-w-xl text-muted-foreground">
+            Telas reais de uma operação de reciclagem com um mês de dados — o que você vê aqui é o
+            que a sua equipe usa no dia a dia.
+          </p>
+          <div className="mt-10 grid gap-8 md:grid-cols-2">
+            {telas.map((t) => (
+              <figure key={t.titulo}>
+                <div className="overflow-hidden rounded-2xl border bg-card shadow-card">
+                  <img
+                    src={t.imagem}
+                    alt={t.alt}
+                    loading="lazy"
+                    className="h-auto w-full transition-transform duration-300 hover:scale-[1.02]"
+                  />
+                </div>
+                <figcaption className="mt-4">
+                  <h3 className="text-base font-bold">{t.titulo}</h3>
+                  <p className="mt-1 text-sm text-muted-foreground">{t.texto}</p>
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+          <div className="mt-12">
+            <Button asChild size="lg" variant="brand">
+              <Link to="/auth">
+                Testar grátis por 1 dia <ArrowUpRight className="ml-1 h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
         </section>
       </main>
     </div>
