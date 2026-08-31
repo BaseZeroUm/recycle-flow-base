@@ -1,6 +1,7 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/AppShell";
+import { TrialGate } from "@/components/TrialGate";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -11,7 +12,9 @@ export const Route = createFileRoute("/_authenticated")({
   },
   component: () => (
     <AppShell>
-      <Outlet />
+      <TrialGate>
+        <Outlet />
+      </TrialGate>
     </AppShell>
   ),
 });
