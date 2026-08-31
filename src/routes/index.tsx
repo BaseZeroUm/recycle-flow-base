@@ -67,7 +67,7 @@ function Index() {
           </div>
         </section>
 
-        <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           {modulos.map((m) => (
             <div key={m.titulo} className="rounded-2xl border bg-card p-6 shadow-card">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-gradient">
