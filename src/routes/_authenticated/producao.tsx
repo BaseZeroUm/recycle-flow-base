@@ -25,9 +25,9 @@ import {
   useParceiros,
   type Movimentacao,
 } from "@/lib/dados";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { FiltroPeriodo, hojeIso, inicioDoMesAtual, periodoLabel as fmtPeriodo } from "@/components/FiltroPeriodo";
 
 export const Route = createFileRoute("/_authenticated/producao")({
   head: () => ({
@@ -64,11 +64,9 @@ function semanaLabel(key: string) {
 }
 
 function Producao() {
-  const [periodo, setPeriodo] = useState("mes");
   const [materialId, setMaterialId] = useState("todos");
-  const hoje = iso(new Date());
-  const [de, setDe] = useState(hoje);
-  const [ate, setAte] = useState(hoje);
+  const [de, setDe] = useState(inicioDoMesAtual());
+  const [ate, setAte] = useState(hojeIso());
 
   const { data: sessao } = useSessao();
   const { data: materiais = [] } = useMateriais(true);
@@ -76,15 +74,7 @@ function Producao() {
   const { data: fornecedores = [] } = useParceiros("fornecedores");
   const { data: clientes = [] } = useParceiros("clientes");
 
-  const intervalo = useMemo(() => {
-    const fim = new Date();
-    const inicio = new Date();
-    if (periodo === "semana") inicio.setDate(inicio.getDate() - 6);
-    else if (periodo === "mes") inicio.setDate(inicio.getDate() - 29);
-    else if (periodo === "trimestre") inicio.setDate(inicio.getDate() - 89);
-    else return { inicio: de, fim: ate };
-    return { inicio: iso(inicio), fim: iso(fim) };
-  }, [periodo, de, ate]);
+  const intervalo = useMemo(() => ({ inicio: de, fim: ate }), [de, ate]);
 
   const nomeMaterial = (id: string) => materiais.find((m) => m.id === id)?.nome ?? "Material";
 
@@ -240,14 +230,6 @@ function Producao() {
         : "Entrada e saída equilibradas";
 
   function imprimir() {
-    const periodoLabel =
-      periodo === "personalizado"
-        ? `${intervalo.inicio} a ${intervalo.fim}`
-        : periodo === "semana"
-          ? "últimos 7 dias"
-          : periodo === "mes"
-            ? "últimos 30 dias"
-            : "últimos 90 dias";
     const materialLabel = materialId === "todos" ? "Todos os materiais" : nomeMaterial(materialId);
     const tabGiro = `<h2>Entrada x saída e giro por material</h2>
       <table><thead><tr><th>Material</th><th class="r">Entrada (kg)</th><th class="r">Saída (kg)</th><th class="r">Diferença</th><th class="r">Saldo atual</th><th class="r">Giro (dias)</th></tr></thead>
@@ -285,7 +267,7 @@ function Producao() {
     imprimirRelatorio({
       titulo: `${sessao?.empresaNome ?? "Empresa"} — Produção`,
       nomeArquivo: "Producao",
-      subtitulo: `Período: ${periodoLabel} · ${materialLabel} · emitido em ${new Date().toLocaleString("pt-BR")}`,
+      subtitulo: `Período: ${fmtPeriodo(de, ate)} · ${materialLabel} · emitido em ${new Date().toLocaleString("pt-BR")}`,
       corpo: tabGiro + tabMargens + top(topFornecedores, "Top 5 fornecedores") + top(topClientes, "Top 5 clientes") + impactoHtml,
     });
   }
@@ -303,32 +285,7 @@ function Producao() {
       />
 
       <div className="mb-6 flex flex-wrap items-end gap-3 rounded-2xl border bg-card p-4 shadow-card">
-        <div className="grid gap-1.5">
-          <Label className="text-xs">Período</Label>
-          <Select value={periodo} onValueChange={setPeriodo}>
-            <SelectTrigger className="w-48">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="semana">Últimos 7 dias</SelectItem>
-              <SelectItem value="mes">Últimos 30 dias</SelectItem>
-              <SelectItem value="trimestre">Últimos 90 dias</SelectItem>
-              <SelectItem value="personalizado">Personalizado</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        {periodo === "personalizado" && (
-          <>
-            <div className="grid gap-1.5">
-              <Label className="text-xs">De</Label>
-              <Input type="date" value={de} onChange={(e) => setDe(e.target.value)} className="w-40" />
-            </div>
-            <div className="grid gap-1.5">
-              <Label className="text-xs">Até</Label>
-              <Input type="date" value={ate} onChange={(e) => setAte(e.target.value)} className="w-40" />
-            </div>
-          </>
-        )}
+        <FiltroPeriodo de={de} ate={ate} onChange={(d, a) => { setDe(d); setAte(a); }} />
         <div className="grid gap-1.5">
           <Label className="text-xs">Material</Label>
           <Select value={materialId} onValueChange={setMaterialId}>
