@@ -300,6 +300,12 @@ function Estoque() {
     onError: (e: Error) => toast.error("Erro ao registrar", { description: e.message }),
   });
 
+  // Abre o ticket com todos os itens agrupados (mesmo ticket_id)
+  function abrirTicket(m: Movimentacao) {
+    const irmaos = m.ticket_id ? movs.filter((x) => x.ticket_id === m.ticket_id) : [m];
+    setTicketAberto(irmaos.length > 0 ? irmaos : [m]);
+  }
+
   function nomeParceiro(m: Movimentacao) {
     const id = m.tipo === "entrada" ? m.fornecedor_id : m.cliente_id;
     const lista = m.tipo === "entrada" ? fornecedores : clientes;
@@ -691,7 +697,7 @@ function Estoque() {
                     <TableCell className="text-right">{num(m.quantidade)}</TableCell>
                     <TableCell className="text-right">{brl(m.valor_total)}</TableCell>
                     <TableCell className="text-right">
-                      <Button size="sm" variant="ghost" onClick={() => setTicketAberto([m])}>
+                      <Button size="sm" variant="ghost" onClick={() => abrirTicket(m)}>
                         <TicketIcon className="h-4 w-4" /> Ticket
                       </Button>
                     </TableCell>

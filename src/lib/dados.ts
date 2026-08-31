@@ -42,6 +42,7 @@ export interface Movimentacao {
   data: string;
   observacoes: string | null;
   numero_ticket: number | null;
+  ticket_id: string | null;
   peso_bruto: number | null;
   tara: number | null;
   valor_unitario: number;
