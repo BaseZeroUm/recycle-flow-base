@@ -47,6 +47,7 @@ const incluido = [
   { icon: Wallet, titulo: "Financeiro", texto: "Contas a pagar e a receber geradas direto da pesagem." },
   { icon: LineChart, titulo: "Fluxo de caixa", texto: "Realizado e previsto, com saldo acumulado e projeção." },
   { icon: BarChart3, titulo: "DRE automática", texto: "Da receita bruta ao lucro líquido, sem planilha." },
+  { icon: Factory, titulo: "Produção", texto: "Análise operacional: entrada × saída, giro, margem por material e impacto reciclado." },
   { icon: Users, titulo: "Equipe com perfis", texto: "Administrador, Financeiro e Operacional, cada um com seu acesso." },
 ];
 

@@ -27,6 +27,7 @@ const modulos = [
   { icon: Wallet, titulo: "Financeiro", texto: "Receitas, despesas, contas a pagar e a receber com vencimentos." },
   { icon: LineChart, titulo: "Fluxo de caixa", texto: "Entradas, saídas, saldo acumulado e projeção do que está por vir." },
   { icon: BarChart3, titulo: "DRE automática", texto: "Da receita bruta ao lucro líquido, gerada dos seus lançamentos." },
+  { icon: Factory, titulo: "Produção", texto: "Entrada × saída, giro de estoque, margem por material e impacto reciclado." },
 ];
 
 function Index() {
