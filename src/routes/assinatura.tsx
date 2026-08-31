@@ -109,7 +109,7 @@ function Assinatura() {
             <div className="flex flex-col items-center gap-2 rounded-2xl border bg-background p-6 text-center">
               <p className="text-sm text-muted-foreground">Mensal</p>
               <p className="text-4xl font-extrabold">
-                R$150<span className="text-base font-medium text-muted-foreground">/mês</span>
+                R$120<span className="text-base font-medium text-muted-foreground">/mês</span>
               </p>
               <p className="text-xs text-muted-foreground">Cancele quando quiser.</p>
             </div>
@@ -118,8 +118,8 @@ function Assinatura() {
                 Melhor custo
               </span>
               <p className="text-sm text-muted-foreground">Trimestral</p>
-              <p className="text-4xl font-extrabold">R$400</p>
-              <p className="text-xs text-muted-foreground">R$133/mês — R$400 pagos a cada 3 meses.</p>
+              <p className="text-4xl font-extrabold">R$360</p>
+              <p className="text-xs text-muted-foreground">R$120/mês — R$360 pagos a cada 3 meses.</p>
             </div>
           </div>
 
