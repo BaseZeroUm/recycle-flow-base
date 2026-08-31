@@ -56,7 +56,7 @@ function Dre() {
 
   const saldos = calcularSaldos(materiais, movs);
   const cmv = movs
-    .filter((m) => m.tipo === "saida" && m.data >= limite)
+    .filter((m) => m.tipo === "saida" && m.data >= de && m.data <= ate)
     .reduce((s, m) => {
       const custo = saldos.find((x) => x.material.id === m.material_id)?.custoMedio ?? 0;
       return s + Number(m.quantidade) * custo;

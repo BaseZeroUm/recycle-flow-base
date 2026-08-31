@@ -65,7 +65,7 @@ function Fluxo() {
         acumulado += saldo;
         return { ...x, label: monthLabel(x.mes), saldo, acumulado };
       });
-  }, [lancs, limite, base]);
+  }, [lancs, de, ate, base]);
 
   if (!autorizado) {
     return (
