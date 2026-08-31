@@ -2,6 +2,10 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowUpRight, BarChart3, Boxes, Factory, LineChart, Wallet } from "lucide-react";
 import { LogoFull } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
+import demoPainel from "@/assets/demo-painel.png";
+import demoEstoque from "@/assets/demo-estoque.png";
+import demoProducao from "@/assets/demo-producao.png";
+import demoFinanceiro from "@/assets/demo-financeiro.png";
 
 export const Route = createFileRoute("/")({
   head: () => ({
