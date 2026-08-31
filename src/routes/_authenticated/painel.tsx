@@ -247,7 +247,7 @@ function Painel() {
     <div>
       <PageHeader
         titulo="Painel"
-        descricao="Visão geral do faturamento, do estoque e da operação."
+        descricao="Visão geral do negócio com insights gerados a partir dos seus dados."
         acoes={
           <Select value={meses} onValueChange={setMeses}>
             <SelectTrigger className="w-44">
@@ -273,6 +273,14 @@ function Painel() {
           <StatCard label="Materiais cadastrados" valor={num(materiais.length, 0)} />
         )}
       </div>
+
+      {insights.length > 0 && (
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {insights.map((ins) => (
+            <InsightCard key={ins.titulo} insight={ins} />
+          ))}
+        </div>
+      )}
 
       <div className="mt-6 grid gap-4 lg:grid-cols-2">
         {financeiro && (
