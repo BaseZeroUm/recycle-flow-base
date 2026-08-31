@@ -34,6 +34,33 @@ const modulos = [
   { icon: Factory, titulo: "Produção", texto: "Entrada × saída, giro de estoque, margem por material e impacto reciclado." },
 ];
 
+const telas = [
+  {
+    imagem: demoPainel,
+    alt: "Painel do sistema com indicadores de receita, caixa, estoque e insights automáticos",
+    titulo: "Painel com insights automáticos",
+    texto: "Receita, saldo, estoque e alertas de margem e atraso — sem você precisar procurar.",
+  },
+  {
+    imagem: demoEstoque,
+    alt: "Tela de estoque e pesagem com tickets de movimentação e saldo por material",
+    titulo: "Pesagem e estoque na mesma tela",
+    texto: "Lançou na balança, saiu o ticket, atualizou o saldo e o financeiro. Tudo junto.",
+  },
+  {
+    imagem: demoProducao,
+    alt: "Página de produção com gráficos de entrada e saída de material",
+    titulo: "Produção medida de verdade",
+    texto: "Volume processado, giro e margem por material direto dos tickets de pesagem.",
+  },
+  {
+    imagem: demoFinanceiro,
+    alt: "Tela do financeiro com contas a pagar e a receber",
+    titulo: "Financeiro sob controle",
+    texto: "Contas a pagar e a receber, atrasos e baixas — com relatório em PDF em um clique.",
+  },
+];
+
 function Index() {
   return (
     <div className="min-h-screen bg-background">
