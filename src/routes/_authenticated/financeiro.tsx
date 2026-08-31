@@ -44,6 +44,9 @@ function Financeiro() {
   const autorizado = podeFinanceiro(sessao);
   const { data: lancs = [] } = useLancamentos(autorizado);
   const { data: categorias = [] } = useCategorias();
+  const { data: caixaMovs = [] } = useCaixaMovimentos(autorizado);
+  const caixaSaldo = saldoAtual(caixaMovs);
+  const caixaAberto = !!aberturaDoDia(caixaMovs);
 
   const [aberto, setAberto] = useState(false);
   const [tipo, setTipo] = useState<"receita" | "despesa">("despesa");
@@ -52,6 +55,7 @@ function Financeiro() {
   const [categoriaId, setCategoriaId] = useState("");
   const [vencimento, setVencimento] = useState(new Date().toISOString().slice(0, 10));
   const [imposto, setImposto] = useState("nao");
+  const [pagarComCaixa, setPagarComCaixa] = useState("nao");
 
   const criar = useMutation({
     mutationFn: async () => {
