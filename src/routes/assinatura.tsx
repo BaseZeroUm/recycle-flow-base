@@ -3,6 +3,7 @@ import {
   BarChart3,
   Boxes,
   Check,
+  Factory,
   LineChart,
   MessageCircle,
   Scale,

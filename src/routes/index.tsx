@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowUpRight, BarChart3, Boxes, LineChart, Wallet } from "lucide-react";
+import { ArrowUpRight, BarChart3, Boxes, Factory, LineChart, Wallet } from "lucide-react";
 import { LogoFull } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 
