@@ -9,6 +9,7 @@ import { brl, dateBR } from "@/lib/format";
 import { imprimirRelatorio } from "@/lib/impressao";
 import { useCategorias, useLancamentos } from "@/lib/dados";
 import { podeFinanceiro, useSessao } from "@/hooks/use-sessao";
+import { aberturaDoDia, saldoAtual, useCaixaMovimentos } from "@/lib/caixa";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
