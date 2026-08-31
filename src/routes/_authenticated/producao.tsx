@@ -231,14 +231,6 @@ function Producao() {
         : "Entrada e saída equilibradas";
 
   function imprimir() {
-    const periodoLabel =
-      periodo === "personalizado"
-        ? `${intervalo.inicio} a ${intervalo.fim}`
-        : periodo === "semana"
-          ? "últimos 7 dias"
-          : periodo === "mes"
-            ? "últimos 30 dias"
-            : "últimos 90 dias";
     const materialLabel = materialId === "todos" ? "Todos os materiais" : nomeMaterial(materialId);
     const tabGiro = `<h2>Entrada x saída e giro por material</h2>
       <table><thead><tr><th>Material</th><th class="r">Entrada (kg)</th><th class="r">Saída (kg)</th><th class="r">Diferença</th><th class="r">Saldo atual</th><th class="r">Giro (dias)</th></tr></thead>
