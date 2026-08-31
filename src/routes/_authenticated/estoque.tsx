@@ -636,6 +636,30 @@ function Estoque() {
                   </Button>
                 </div>
 
+                {tipo === "entrada" && (
+                  <div className="space-y-2">
+                    <Label>Forma de pagamento</Label>
+                    <Select
+                      value={formaPagamento}
+                      onValueChange={(v) => setFormaPagamento(v as "prazo" | "caixa")}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="caixa">Caixa (dinheiro)</SelectItem>
+                        <SelectItem value="prazo">A prazo / outro (PIX, transferência, boleto)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {formaPagamento === "caixa" && (
+                      <p className="text-xs text-muted-foreground">
+                        Saldo do caixa: <strong>{brl(caixaSaldo)}</strong>
+                        {caixaAberto ? " · caixa aberto hoje" : " · abra o caixa do dia antes de salvar"}
+                      </p>
+                    )}
+                  </div>
+                )}
+
                 <div className="space-y-2">
                   <Label>Observações</Label>
                   <Input value={observacoes} onChange={(e) => setObservacoes(e.target.value)} />
@@ -654,7 +678,9 @@ function Estoque() {
                   </div>
                   {podeFinanceiro(sessao) && (
                     <p className="mt-2 text-xs text-muted-foreground">
-                      Gera estoque e lançamento{itens.length > 1 ? "s" : ""}{tipo === "entrada" ? " a pagar" : " a receber"} para cada item — todos no mesmo ticket.
+                      {tipo === "entrada" && formaPagamento === "caixa"
+                        ? "Gera estoque, lançamento já pago e débito automático no caixa físico."
+                        : `Gera estoque e lançamento${itens.length > 1 ? "s" : ""}${tipo === "entrada" ? " a pagar" : " a receber"} para cada item — todos no mesmo ticket.`}
                     </p>
                   )}
                 </div>
