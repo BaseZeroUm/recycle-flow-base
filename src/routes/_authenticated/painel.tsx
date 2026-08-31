@@ -50,7 +50,8 @@ export const Route = createFileRoute("/_authenticated/painel")({
 });
 
 function Painel() {
-  const [meses, setMeses] = useState("6");
+  const [de, setDe] = useState(inicioDoMesAtual());
+  const [ate, setAte] = useState(hojeIso());
   const { data: sessao } = useSessao();
   const financeiro = podeFinanceiro(sessao);
   const { data: materiais = [] } = useMateriais();
