@@ -217,6 +217,23 @@ function Estoque() {
         queryClient.invalidateQueries({ queryKey: [tabela] });
       }
 
+      // Cria UM ticket que agrupa todos os itens
+      const { data: ticket, error: erroTicket } = await supabase
+        .from("tickets")
+        .insert({
+          empresa_id: sessao.empresaId,
+          tipo,
+          data,
+          fornecedor_id: tipo === "entrada" ? parceiro : null,
+          cliente_id: tipo === "saida" ? parceiro : null,
+          observacoes: observacoes || null,
+          responsavel: sessao.nome ?? null,
+          criado_por: sessao.userId,
+        })
+        .select("*")
+        .single();
+      if (erroTicket) throw erroTicket;
+
       const movsCriadas: Movimentacao[] = [];
       for (const item of itensValidos) {
         const { liquido, total } = calcItem(item);
@@ -236,6 +253,7 @@ function Estoque() {
             valor_total: total,
             data,
             observacoes: observacoes || null,
+            ticket_id: ticket.id,
             criado_por: sessao.userId,
           })
           .select("*")
@@ -247,7 +265,7 @@ function Estoque() {
           const { error: erroLanc } = await supabase.from("lancamentos").insert({
             empresa_id: sessao.empresaId,
             tipo: tipo === "entrada" ? "despesa" : "receita",
-            descricao: `Ticket ${mov.numero_ticket} · ${tipo === "entrada" ? "Compra" : "Venda"} de ${material?.nome ?? "Material"}`,
+            descricao: `Ticket ${ticket.numero_ticket} · ${tipo === "entrada" ? "Compra" : "Venda"} de ${material?.nome ?? "Material"}`,
             valor: total,
             data_vencimento: data,
             status: "pendente",
@@ -257,11 +275,10 @@ function Estoque() {
           if (erroLanc) throw erroLanc;
         }
       }
-      return movsCriadas;
+      return { ticket, movsCriadas };
     },
-    onSuccess: (movsCriadas) => {
-      const primeiro = movsCriadas[0];
-      toast.success(`${movsCriadas.length} item(ns) registrado(s) · ticket nº ${primeiro.numero_ticket}`);
+    onSuccess: ({ ticket, movsCriadas }) => {
+      toast.success(`${movsCriadas.length} item(ns) registrado(s) · ticket nº ${ticket.numero_ticket}`);
       queryClient.invalidateQueries({ queryKey: ["movimentacoes"] });
       queryClient.invalidateQueries({ queryKey: ["lancamentos"] });
       setAberto(false);
@@ -597,15 +614,14 @@ function Estoque() {
                   </div>
                   {podeFinanceiro(sessao) && (
                     <p className="mt-2 text-xs text-muted-foreground">
-                      Gera estoque e lançamento{itens.length > 1 ? "s" : ""}{tipo === "entrada" ? " a pagar" : " a receber"}
-                      para cada item.
+                      Gera estoque e lançamento{itens.length > 1 ? "s" : ""}{tipo === "entrada" ? " a pagar" : " a receber"} para cada item — todos no mesmo ticket.
                     </p>
                   )}
                 </div>
               </div>
               <DialogFooter>
                 <Button variant="brand" onClick={() => salvar.mutate()} disabled={salvar.isPending}>
-                  {itens.length > 1 ? `Registrar ${itens.length} itens e emitir tickets` : "Registrar e emitir ticket"}
+                  {itens.length > 1 ? `Registrar ${itens.length} itens num ticket` : "Registrar e emitir ticket"}
                 </Button>
               </DialogFooter>
             </DialogContent>
