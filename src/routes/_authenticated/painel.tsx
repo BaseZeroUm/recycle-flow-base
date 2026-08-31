@@ -364,3 +364,45 @@ function Card({ titulo, children }: { titulo: string; children: React.ReactNode 
     </div>
   );
 }
+
+type Insight = {
+  tipo: "bom" | "ruim" | "neutro";
+  icone: "tendencia" | "alerta" | "ideia" | "parceiros";
+  titulo: string;
+  texto: string;
+};
+
+function InsightCard({ insight }: { insight: Insight }) {
+  const Icone =
+    insight.icone === "alerta"
+      ? AlertTriangle
+      : insight.icone === "ideia"
+        ? Lightbulb
+        : insight.icone === "parceiros"
+          ? Users
+          : insight.tipo === "ruim"
+            ? TrendingDown
+            : TrendingUp;
+  const corIcone =
+    insight.tipo === "bom"
+      ? "bg-success/10 text-success"
+      : insight.tipo === "ruim"
+        ? "bg-destructive/10 text-destructive"
+        : "bg-primary/10 text-primary";
+  const Seta = insight.tipo === "bom" ? ArrowUpRight : insight.tipo === "ruim" ? ArrowDownRight : null;
+
+  return (
+    <div className="flex gap-3 rounded-2xl border bg-card p-4 shadow-card">
+      <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${corIcone}`}>
+        <Icone className="h-4 w-4" />
+      </div>
+      <div className="min-w-0">
+        <p className="flex items-center gap-1 text-sm font-bold">
+          {insight.titulo}
+          {Seta && <Seta className="h-3.5 w-3.5" />}
+        </p>
+        <p className="mt-0.5 text-sm text-muted-foreground">{insight.texto}</p>
+      </div>
+    </div>
+  );
+}
