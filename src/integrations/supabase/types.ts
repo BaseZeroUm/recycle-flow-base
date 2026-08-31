@@ -14,6 +14,73 @@ export type Database = {
   }
   public: {
     Tables: {
+      caixa_movimentos: {
+        Row: {
+          created_at: string
+          criado_por: string | null
+          data: string
+          descricao: string | null
+          diferenca: number | null
+          empresa_id: string
+          id: string
+          lancamento_id: string | null
+          ticket_id: string | null
+          tipo: Database["public"]["Enums"]["caixa_tipo"]
+          updated_at: string
+          valor: number
+        }
+        Insert: {
+          created_at?: string
+          criado_por?: string | null
+          data?: string
+          descricao?: string | null
+          diferenca?: number | null
+          empresa_id: string
+          id?: string
+          lancamento_id?: string | null
+          ticket_id?: string | null
+          tipo: Database["public"]["Enums"]["caixa_tipo"]
+          updated_at?: string
+          valor?: number
+        }
+        Update: {
+          created_at?: string
+          criado_por?: string | null
+          data?: string
+          descricao?: string | null
+          diferenca?: number | null
+          empresa_id?: string
+          id?: string
+          lancamento_id?: string | null
+          ticket_id?: string | null
+          tipo?: Database["public"]["Enums"]["caixa_tipo"]
+          updated_at?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "caixa_movimentos_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "caixa_movimentos_lancamento_id_fkey"
+            columns: ["lancamento_id"]
+            isOneToOne: false
+            referencedRelation: "lancamentos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "caixa_movimentos_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       categorias_despesa: {
         Row: {
           created_at: string
@@ -503,6 +570,7 @@ export type Database = {
           criado_por: string | null
           data: string
           empresa_id: string
+          forma_pagamento: string | null
           fornecedor_id: string | null
           id: string
           numero_ticket: number | null
@@ -517,6 +585,7 @@ export type Database = {
           criado_por?: string | null
           data?: string
           empresa_id: string
+          forma_pagamento?: string | null
           fornecedor_id?: string | null
           id?: string
           numero_ticket?: number | null
@@ -531,6 +600,7 @@ export type Database = {
           criado_por?: string | null
           data?: string
           empresa_id?: string
+          forma_pagamento?: string | null
           fornecedor_id?: string | null
           id?: string
           numero_ticket?: number | null
@@ -612,6 +682,13 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "financeiro" | "operacional"
+      caixa_tipo:
+        | "abertura"
+        | "aporte"
+        | "compra"
+        | "despesa"
+        | "sangria"
+        | "conferencia"
       grupo_despesa:
         | "operacional"
         | "administrativa"
@@ -751,6 +828,14 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "financeiro", "operacional"],
+      caixa_tipo: [
+        "abertura",
+        "aporte",
+        "compra",
+        "despesa",
+        "sangria",
+        "conferencia",
+      ],
       grupo_despesa: [
         "operacional",
         "administrativa",
