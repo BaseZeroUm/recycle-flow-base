@@ -75,7 +75,6 @@ function Estoque() {
   const [parceiroId, setParceiroId] = useState("");
   const [novoParceiro, setNovoParceiro] = useState("");
   const [pesoBruto, setPesoBruto] = useState("");
-  const [tara, setTara] = useState("");
   const [liquidoManual, setLiquidoManual] = useState("");
   const [preco, setPreco] = useState("");
   const [data, setData] = useState(new Date().toISOString().slice(0, 10));
@@ -91,7 +90,7 @@ function Estoque() {
   const liquido =
     liquidoManual !== ""
       ? Number(liquidoManual) || 0
-      : Math.max((Number(pesoBruto) || 0) - (Number(tara) || 0), 0);
+      : Math.max(Number(pesoBruto) || 0, 0);
   const total = liquido * (Number(preco) || 0);
 
   const materiaisFiltrados =
@@ -149,7 +148,6 @@ function Estoque() {
           cliente_id: tipo === "saida" ? parceiro : null,
           quantidade: liquido,
           peso_bruto: pesoBruto === "" ? null : Number(pesoBruto),
-          tara: tara === "" ? null : Number(tara),
           valor_unitario: Number(preco) || 0,
           valor_total: total,
           data,
@@ -182,7 +180,6 @@ function Estoque() {
       queryClient.invalidateQueries({ queryKey: ["lancamentos"] });
       setAberto(false);
       setPesoBruto("");
-      setTara("");
       setLiquidoManual("");
       setObservacoes("");
       setNovoParceiro("");
@@ -407,7 +404,7 @@ function Estoque() {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-2">
-                    <Label>Peso bruto ({material?.unidade ?? "kg"})</Label>
+                    <Label>Peso ({material?.unidade ?? "kg"})</Label>
                     <Input
                       type="number"
                       step="0.01"
@@ -416,14 +413,7 @@ function Estoque() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Tara ({material?.unidade ?? "kg"})</Label>
-                    <Input type="number" step="0.01" value={tara} onChange={(e) => setTara(e.target.value)} />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-2">
-                    <Label>Peso líquido (opcional)</Label>
+                    <Label>Ajuste de peso (opcional)</Label>
                     <Input
                       type="number"
                       step="0.01"

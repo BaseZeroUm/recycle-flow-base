@@ -57,9 +57,7 @@ export const TicketPesagem = forwardRef<HTMLDivElement, { dados: DadosTicket }>(
         <Linha rotulo="Material" valor={materialNome} />
         {mov.veiculo_placa && <Linha rotulo="Veículo / placa" valor={mov.veiculo_placa} />}
         {mov.motorista && <Linha rotulo="Motorista" valor={mov.motorista} />}
-        {mov.peso_bruto != null && <Linha rotulo="Peso bruto" valor={`${num(mov.peso_bruto)} ${unidade}`} />}
-        {mov.tara != null && <Linha rotulo="Tara" valor={`${num(mov.tara)} ${unidade}`} />}
-        <Linha rotulo="Peso líquido" valor={`${num(mov.quantidade)} ${unidade}`} />
+        <Linha rotulo="Peso" valor={`${num(mov.quantidade)} ${unidade}`} />
         <Linha rotulo="Valor unitário" valor={`${brl(mov.valor_unitario)} / ${unidade}`} />
         {mov.observacoes && <Linha rotulo="Observações" valor={mov.observacoes} />}
         {dados.responsavel && <Linha rotulo="Responsável" valor={dados.responsavel} />}
