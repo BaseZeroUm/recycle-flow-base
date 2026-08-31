@@ -18,11 +18,21 @@ import {
 import { PageHeader, StatCard } from "@/components/PageHeader";
 import { brl, monthKey, monthLabel, num } from "@/lib/format";
 import {
+  AlertTriangle,
+  ArrowDownRight,
+  ArrowUpRight,
+  Lightbulb,
+  TrendingDown,
+  TrendingUp,
+  Users,
+} from "lucide-react";
+import {
   calcularSaldos,
   useCategorias,
   useLancamentos,
   useMateriais,
   useMovimentacoes,
+  useParceiros,
 } from "@/lib/dados";
 import { podeFinanceiro, useSessao } from "@/hooks/use-sessao";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
