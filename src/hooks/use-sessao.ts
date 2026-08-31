@@ -10,6 +10,9 @@ export interface Sessao {
   empresaId: string;
   empresaNome: string;
   papeis: Papel[];
+  trialAte: string | null;
+  assinaturaAtiva: boolean;
+  acessoLiberado: boolean;
 }
 
 export function useSessao() {
@@ -22,20 +25,29 @@ export function useSessao() {
 
       const { data: perfil } = await supabase
         .from("profiles")
-        .select("id, nome, email, empresa_id, empresas(razao_social)")
+        .select("id, nome, email, empresa_id, empresas(razao_social, trial_ate, assinatura_ativa)")
         .eq("id", user.id)
         .maybeSingle();
 
       const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", user.id);
+
+      const empresa = perfil?.empresas as
+        | { razao_social: string; trial_ate: string | null; assinatura_ativa: boolean }
+        | null;
+      const trialAte = empresa?.trial_ate ?? null;
+      const assinaturaAtiva = empresa?.assinatura_ativa ?? false;
+      const trialValido = !!trialAte && new Date(trialAte).getTime() > Date.now();
 
       return {
         userId: user.id,
         email: perfil?.email ?? user.email ?? "",
         nome: perfil?.nome ?? user.email ?? "",
         empresaId: perfil?.empresa_id ?? "",
-        empresaNome:
-          (perfil?.empresas as { razao_social: string } | null)?.razao_social ?? "Minha empresa",
+        empresaNome: empresa?.razao_social ?? "Minha empresa",
         papeis: (roles ?? []).map((r) => r.role as Papel),
+        trialAte,
+        assinaturaAtiva,
+        acessoLiberado: assinaturaAtiva || trialValido,
       };
     },
     staleTime: 60_000,
