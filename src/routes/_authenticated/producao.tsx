@@ -276,7 +276,7 @@ function Producao() {
     imprimirRelatorio({
       titulo: `${sessao?.empresaNome ?? "Empresa"} — Produção`,
       nomeArquivo: "Producao",
-      subtitulo: `Período: ${periodoLabel} · ${materialLabel} · emitido em ${new Date().toLocaleString("pt-BR")}`,
+      subtitulo: `Período: ${fmtPeriodo(de, ate)} · ${materialLabel} · emitido em ${new Date().toLocaleString("pt-BR")}`,
       corpo: tabGiro + tabMargens + top(topFornecedores, "Top 5 fornecedores") + top(topClientes, "Top 5 clientes") + impactoHtml,
     });
   }
@@ -294,32 +294,7 @@ function Producao() {
       />
 
       <div className="mb-6 flex flex-wrap items-end gap-3 rounded-2xl border bg-card p-4 shadow-card">
-        <div className="grid gap-1.5">
-          <Label className="text-xs">Período</Label>
-          <Select value={periodo} onValueChange={setPeriodo}>
-            <SelectTrigger className="w-48">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="semana">Últimos 7 dias</SelectItem>
-              <SelectItem value="mes">Últimos 30 dias</SelectItem>
-              <SelectItem value="trimestre">Últimos 90 dias</SelectItem>
-              <SelectItem value="personalizado">Personalizado</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        {periodo === "personalizado" && (
-          <>
-            <div className="grid gap-1.5">
-              <Label className="text-xs">De</Label>
-              <Input type="date" value={de} onChange={(e) => setDe(e.target.value)} className="w-40" />
-            </div>
-            <div className="grid gap-1.5">
-              <Label className="text-xs">Até</Label>
-              <Input type="date" value={ate} onChange={(e) => setAte(e.target.value)} className="w-40" />
-            </div>
-          </>
-        )}
+        <FiltroPeriodo de={de} ate={ate} onChange={(d, a) => { setDe(d); setAte(a); }} />
         <div className="grid gap-1.5">
           <Label className="text-xs">Material</Label>
           <Select value={materialId} onValueChange={setMaterialId}>
