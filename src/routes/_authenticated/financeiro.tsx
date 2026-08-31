@@ -277,7 +277,8 @@ function Financeiro() {
                 </Button>
               </DialogFooter>
             </DialogContent>
-          </Dialog>
+            </Dialog>
+          </>
         }
       />
 
