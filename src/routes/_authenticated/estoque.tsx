@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Download, Plus, Printer, Search, Share2, Ticket as TicketIcon } from "lucide-react";
+import { Download, Minus, Plus, Printer, Search, Share2, Ticket as TicketIcon, Trash2 } from "lucide-react";
 import { toPng } from "html-to-image";
 import { supabase } from "@/integrations/supabase/client";
 import { PageHeader, StatCard } from "@/components/PageHeader";
@@ -51,6 +51,20 @@ export const Route = createFileRoute("/_authenticated/estoque")({
   component: Estoque,
 });
 
+// Tipos para itens do carrinho
+type ItemCarrinho = {
+  id: string;
+  materialId: string;
+  categoriaMaterialId: string;
+  pesoBruto: string;
+  liquidoManual: string;
+  preco: string;
+};
+
+function gerarId() {
+  return Math.random().toString(36).slice(2);
+}
+
 function Estoque() {
   const queryClient = useQueryClient();
   const { data: sessao } = useSessao();
@@ -70,60 +84,125 @@ function Estoque() {
 
   const [aberto, setAberto] = useState(false);
   const [tipo, setTipo] = useState<"entrada" | "saida">("entrada");
-  const [categoriaMaterialId, setCategoriaMaterialId] = useState("todas");
-  const [materialId, setMaterialId] = useState("");
   const [parceiroId, setParceiroId] = useState("");
   const [novoParceiro, setNovoParceiro] = useState("");
-  const [pesoBruto, setPesoBruto] = useState("");
-  const [liquidoManual, setLiquidoManual] = useState("");
-  const [preco, setPreco] = useState("");
   const [data, setData] = useState(new Date().toISOString().slice(0, 10));
   const [observacoes, setObservacoes] = useState("");
   const [busca, setBusca] = useState("");
-  const [ticketAberto, setTicketAberto] = useState<Movimentacao | null>(null);
+  const [ticketAberto, setTicketAberto] = useState<Movimentacao[] | null>(null);
+
+  // Estado do carrinho
+  const [itens, setItens] = useState<ItemCarrinho[]>([
+    {
+      id: gerarId(),
+      materialId: "",
+      categoriaMaterialId: "todas",
+      pesoBruto: "",
+      liquidoManual: "",
+      preco: "",
+    },
+  ]);
 
   const ticketRef = useRef<HTMLDivElement>(null);
   const parceiros = tipo === "entrada" ? fornecedores : clientes;
-  const material = materiais.find((m) => m.id === materialId);
   const saldos = calcularSaldos(materiais, movs);
 
-  const liquido =
-    liquidoManual !== ""
-      ? Number(liquidoManual) || 0
-      : Math.max(Number(pesoBruto) || 0, 0);
-  const total = liquido * (Number(preco) || 0);
-
-  const materiaisFiltrados =
-    categoriaMaterialId === "todas"
-      ? materiais
-      : materiais.filter((m) => m.categoria_material_id === categoriaMaterialId);
-
-  function selecionarCategoria(id: string) {
-    setCategoriaMaterialId(id);
-    if (id !== "todas") {
-      const m = materiais.find((x) => x.id === materialId);
-      if (m && m.categoria_material_id !== id) setMaterialId("");
-    }
+  // Calcula líquido e total por item
+  function calcItem(item: ItemCarrinho) {
+    const material = materiais.find((m) => m.id === item.materialId);
+    const liquido =
+      item.liquidoManual !== ""
+        ? Number(item.liquidoManual) || 0
+        : Math.max(Number(item.pesoBruto) || 0, 0);
+    const total = liquido * (Number(item.preco) || 0);
+    return { liquido, total, unidade: material?.unidade ?? "kg" };
   }
 
-  function selecionarMaterial(id: string) {
-    setMaterialId(id);
-    const m = materiais.find((x) => x.id === id);
-    if (m) setPreco(String(tipo === "entrada" ? m.preco_compra : m.preco_venda));
+  const totalGeral = itens.reduce((soma, item) => soma + calcItem(item).total, 0);
+  const pesoTotal = itens.reduce((soma, item) => soma + calcItem(item).liquido, 0);
+
+  // Selecionar categoria de um item
+  function selecionarCategoriaItem(itemId: string, catId: string) {
+    setItens((prev) =>
+      prev.map((item) => {
+        if (item.id !== itemId) return item;
+        // Se mudou categoria, limpa material
+        if (catId !== "todas") {
+          const m = materiais.find((x) => x.id === item.materialId);
+          if (m && m.categoria_material_id !== catId) {
+            return { ...item, categoriaMaterialId: catId, materialId: "", preco: "" };
+          }
+        }
+        return { ...item, categoriaMaterialId: catId };
+      }),
+    );
+  }
+
+  // Selecionar material de um item
+  function selecionarMaterialItem(itemId: string, matId: string) {
+    setItens((prev) =>
+      prev.map((item) => {
+        if (item.id !== itemId) return item;
+        const m = materiais.find((x) => x.id === matId);
+        return {
+          ...item,
+          materialId: matId,
+          preco: m ? String(tipo === "entrada" ? m.preco_compra : m.preco_venda) : item.preco,
+        };
+      }),
+    );
+  }
+
+  // Atualizar campo de um item
+  function atualizarItem(itemId: string, campo: keyof ItemCarrinho, valor: string) {
+    setItens((prev) => prev.map((item) => (item.id === itemId ? { ...item, [campo]: valor } : item)));
+  }
+
+  // Adicionar item ao carrinho
+  function adicionarItem() {
+    setItens((prev) => [
+      ...prev,
+      {
+        id: gerarId(),
+        materialId: "",
+        categoriaMaterialId: "todas",
+        pesoBruto: "",
+        liquidoManual: "",
+        preco: "",
+      },
+    ]);
+  }
+
+  // Remover item do carrinho
+  function removerItem(itemId: string) {
+    setItens((prev) => {
+      if (prev.length <= 1) return prev;
+      return prev.filter((item) => item.id !== itemId);
+    });
   }
 
   function trocarTipo(t: "entrada" | "saida") {
     setTipo(t);
     setParceiroId("");
-    const m = materiais.find((x) => x.id === materialId);
-    if (m) setPreco(String(t === "entrada" ? m.preco_compra : m.preco_venda));
+    setItens((prev) =>
+      prev.map((item) => {
+        const m = materiais.find((x) => x.id === item.materialId);
+        return {
+          ...item,
+          preco: m ? String(t === "entrada" ? m.preco_compra : m.preco_venda) : item.preco,
+        };
+      }),
+    );
   }
 
   const salvar = useMutation({
     mutationFn: async () => {
       if (!sessao) throw new Error("Sessão inválida");
-      if (!materialId) throw new Error("Selecione o material");
-      if (liquido <= 0) throw new Error("Informe o peso líquido");
+      const itensValidos = itens.filter((item) => {
+        const { liquido } = calcItem(item);
+        return item.materialId && liquido > 0;
+      });
+      if (itensValidos.length === 0) throw new Error("Adicione pelo menos um material com peso");
 
       let parceiro = parceiroId || null;
       if (!parceiro && novoParceiro.trim()) {
@@ -138,52 +217,67 @@ function Estoque() {
         queryClient.invalidateQueries({ queryKey: [tabela] });
       }
 
-      const { data: mov, error } = await supabase
-        .from("movimentacoes_estoque")
-        .insert({
-          empresa_id: sessao.empresaId,
-          tipo,
-          material_id: materialId,
-          fornecedor_id: tipo === "entrada" ? parceiro : null,
-          cliente_id: tipo === "saida" ? parceiro : null,
-          quantidade: liquido,
-          peso_bruto: pesoBruto === "" ? null : Number(pesoBruto),
-          valor_unitario: Number(preco) || 0,
-          valor_total: total,
-          data,
-          observacoes: observacoes || null,
-          criado_por: sessao.userId,
-        })
-        .select("*")
-        .single();
-      if (error) throw error;
+      const movsCriadas: Movimentacao[] = [];
+      for (const item of itensValidos) {
+        const { liquido, total } = calcItem(item);
+        const material = materiais.find((m) => m.id === item.materialId);
 
-      if (podeFinanceiro(sessao) && total > 0) {
-        const nomeMaterial = material?.nome ?? "Material";
-        const { error: erroLanc } = await supabase.from("lancamentos").insert({
-          empresa_id: sessao.empresaId,
-          tipo: tipo === "entrada" ? "despesa" : "receita",
-          descricao: `Ticket ${mov.numero_ticket} · ${tipo === "entrada" ? "Compra" : "Venda"} de ${nomeMaterial}`,
-          valor: total,
-          data_vencimento: data,
-          status: "pendente",
-          movimentacao_id: mov.id,
-          criado_por: sessao.userId,
-        });
-        if (erroLanc) throw erroLanc;
+        const { data: mov, error } = await supabase
+          .from("movimentacoes_estoque")
+          .insert({
+            empresa_id: sessao.empresaId,
+            tipo,
+            material_id: item.materialId,
+            fornecedor_id: tipo === "entrada" ? parceiro : null,
+            cliente_id: tipo === "saida" ? parceiro : null,
+            quantidade: liquido,
+            peso_bruto: item.pesoBruto === "" ? null : Number(item.pesoBruto),
+            valor_unitario: Number(item.preco) || 0,
+            valor_total: total,
+            data,
+            observacoes: observacoes || null,
+            criado_por: sessao.userId,
+          })
+          .select("*")
+          .single();
+        if (error) throw error;
+        movsCriadas.push(mov as Movimentacao);
+
+        if (podeFinanceiro(sessao) && total > 0) {
+          const { error: erroLanc } = await supabase.from("lancamentos").insert({
+            empresa_id: sessao.empresaId,
+            tipo: tipo === "entrada" ? "despesa" : "receita",
+            descricao: `Ticket ${mov.numero_ticket} · ${tipo === "entrada" ? "Compra" : "Venda"} de ${material?.nome ?? "Material"}`,
+            valor: total,
+            data_vencimento: data,
+            status: "pendente",
+            movimentacao_id: mov.id,
+            criado_por: sessao.userId,
+          });
+          if (erroLanc) throw erroLanc;
+        }
       }
-      return mov as Movimentacao;
+      return movsCriadas;
     },
-    onSuccess: (mov) => {
-      toast.success(`Movimentação registrada · ticket nº ${mov.numero_ticket}`);
+    onSuccess: (movsCriadas) => {
+      const primeiro = movsCriadas[0];
+      toast.success(`${movsCriadas.length} item(ns) registrado(s) · ticket nº ${primeiro.numero_ticket}`);
       queryClient.invalidateQueries({ queryKey: ["movimentacoes"] });
       queryClient.invalidateQueries({ queryKey: ["lancamentos"] });
       setAberto(false);
-      setPesoBruto("");
-      setLiquidoManual("");
+      setItens([
+        {
+          id: gerarId(),
+          materialId: "",
+          categoriaMaterialId: "todas",
+          pesoBruto: "",
+          liquidoManual: "",
+          preco: "",
+        },
+      ]);
       setObservacoes("");
       setNovoParceiro("");
-      setTicketAberto(mov);
+      setTicketAberto(movsCriadas);
     },
     onError: (e: Error) => toast.error("Erro ao registrar", { description: e.message }),
   });
@@ -194,18 +288,19 @@ function Estoque() {
     return lista.find((p) => p.id === id)?.nome ?? "Não informado";
   }
 
-  const dadosTicket: DadosTicket | null = ticketAberto
-    ? {
-        mov: ticketAberto,
-        materialNome: materiais.find((m) => m.id === ticketAberto.material_id)?.nome ?? "—",
-        unidade: materiais.find((m) => m.id === ticketAberto.material_id)?.unidade ?? "kg",
-        parceiroNome: nomeParceiro(ticketAberto),
-        empresaNome: empresa?.razao_social ?? sessao?.empresaNome ?? "Empresa",
-        empresaCnpj: empresa?.cnpj ?? null,
-        empresaTelefone: empresa?.telefone ?? null,
-        responsavel: sessao?.nome ?? null,
-      }
-    : null;
+  const dadosTicket: DadosTicket[] | null =
+    ticketAberto
+      ? ticketAberto.map((mov) => ({
+          mov,
+          materialNome: materiais.find((m) => m.id === mov.material_id)?.nome ?? "—",
+          unidade: materiais.find((m) => m.id === mov.material_id)?.unidade ?? "kg",
+          parceiroNome: nomeParceiro(mov),
+          empresaNome: empresa?.razao_social ?? sessao?.empresaNome ?? "Empresa",
+          empresaCnpj: empresa?.cnpj ?? null,
+          empresaTelefone: empresa?.telefone ?? null,
+          responsavel: sessao?.nome ?? null,
+        }))
+      : null;
 
   async function gerarImagem() {
     if (!ticketRef.current) return null;
@@ -223,7 +318,7 @@ function Estoque() {
       if (!img || !dadosTicket) return;
       const a = document.createElement("a");
       a.href = img.dataUrl;
-      a.download = `ticket-${dadosTicket.mov.numero_ticket}.png`;
+      a.download = `ticket-${dadosTicket[0]?.mov.numero_ticket ?? ""}.png`;
       a.click();
     } catch (e) {
       toast.error("Não foi possível gerar a imagem", { description: (e as Error).message });
@@ -232,20 +327,20 @@ function Estoque() {
 
   async function compartilhar() {
     if (!dadosTicket) return;
-    const texto = textoWhatsApp(dadosTicket);
+    const textos = dadosTicket.map(textoWhatsApp).join("\n\n");
     try {
       const img = await gerarImagem();
       const arquivo = img
-        ? new File([img.blob], `ticket-${dadosTicket.mov.numero_ticket}.png`, { type: "image/png" })
+        ? new File([img.blob], `ticket-${dadosTicket[0]?.mov.numero_ticket ?? ""}.png`, { type: "image/png" })
         : null;
       if (arquivo && navigator.canShare?.({ files: [arquivo] })) {
-        await navigator.share({ files: [arquivo], text: texto, title: "Ticket de pesagem" });
+        await navigator.share({ files: [arquivo], text: textos, title: "Tickets de pesagem" });
         return;
       }
     } catch {
       /* segue para o fallback */
     }
-    window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`, "_blank", "noopener");
+    window.open(`https://wa.me/?text=${encodeURIComponent(textos)}`, "_blank", "noopener");
   }
 
   const filtrados = useMemo(() => {
@@ -323,7 +418,7 @@ function Estoque() {
             </DialogTrigger>
             <DialogContent className="max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>Nova movimentação (ticket de pesagem)</DialogTitle>
+                <DialogTitle>Ticket de pesagem</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-3">
@@ -342,40 +437,6 @@ function Estoque() {
                   <div className="space-y-2">
                     <Label>Data</Label>
                     <Input type="date" value={data} onChange={(e) => setData(e.target.value)} />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-2">
-                    <Label>Categoria do material</Label>
-                    <Select value={categoriaMaterialId} onValueChange={selecionarCategoria}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Todas" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="todas">Todas</SelectItem>
-                        {categoriasMaterial.map((c) => (
-                          <SelectItem key={c.id} value={c.id}>
-                            {c.nome}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Material</Label>
-                    <Select value={materialId} onValueChange={selecionarMaterial}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {materiaisFiltrados.map((m) => (
-                          <SelectItem key={m.id} value={m.id}>
-                            {m.nome}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
                   </div>
                 </div>
 
@@ -402,30 +463,120 @@ function Estoque() {
                   )}
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-2">
-                    <Label>Peso ({material?.unidade ?? "kg"})</Label>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      value={pesoBruto}
-                      onChange={(e) => setPesoBruto(e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Ajuste de peso (opcional)</Label>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      placeholder={num(liquido)}
-                      value={liquidoManual}
-                      onChange={(e) => setLiquidoManual(e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Valor unitário (R$/{material?.unidade ?? "kg"})</Label>
-                    <Input type="number" step="0.01" value={preco} onChange={(e) => setPreco(e.target.value)} />
-                  </div>
+                {/* Itens do carrinho */}
+                <div className="space-y-3">
+                  {itens.map((item, idx) => {
+                    const material = materiais.find((m) => m.id === item.materialId);
+                    const { liquido, total } = calcItem(item);
+                    const materiaisFiltrados =
+                      item.categoriaMaterialId === "todas"
+                        ? materiais
+                        : materiais.filter((m) => m.categoria_material_id === item.categoriaMaterialId);
+
+                    return (
+                      <div key={item.id} className="rounded-xl border bg-muted/40 p-4 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                            Item {idx + 1}
+                          </span>
+                          {itens.length > 1 && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-7 text-destructive hover:text-destructive"
+                              onClick={() => removerItem(item.id)}
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          )}
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="space-y-2">
+                            <Label className="text-xs">Categoria</Label>
+                            <Select
+                              value={item.categoriaMaterialId}
+                              onValueChange={(v) => selecionarCategoriaItem(item.id, v)}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Todas" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="todas">Todas</SelectItem>
+                                {categoriasMaterial.map((c) => (
+                                  <SelectItem key={c.id} value={c.id}>
+                                    {c.nome}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-xs">Material</Label>
+                            <Select
+                              value={item.materialId}
+                              onValueChange={(v) => selecionarMaterialItem(item.id, v)}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecione" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {materiaisFiltrados.map((m) => (
+                                  <SelectItem key={m.id} value={m.id}>
+                                    {m.nome}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-3 gap-3">
+                          <div className="space-y-2">
+                            <Label className="text-xs">Peso ({material?.unidade ?? "kg"})</Label>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              placeholder="0"
+                              value={item.pesoBruto}
+                              onChange={(e) => atualizarItem(item.id, "pesoBruto", e.target.value)}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-xs">Ajuste (opcional)</Label>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              placeholder={String(liquido)}
+                              value={item.liquidoManual}
+                              onChange={(e) => atualizarItem(item.id, "liquidoManual", e.target.value)}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-xs">Valor unit. (R$/{material?.unidade ?? "kg"})</Label>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              placeholder="0,00"
+                              value={item.preco}
+                              onChange={(e) => atualizarItem(item.id, "preco", e.target.value)}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="flex justify-end text-sm">
+                          <span>
+                            <strong>{num(liquido)}</strong> {material?.unidade ?? "kg"} × {brl(Number(item.preco) || 0)} ={" "}
+                            <strong className="text-base">{brl(total)}</strong>
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                  <Button variant="outline" size="sm" onClick={adicionarItem} className="w-full">
+                    <Plus className="h-4 w-4" /> Adicionar mais um item
+                  </Button>
                 </div>
 
                 <div className="space-y-2">
@@ -433,19 +584,28 @@ function Estoque() {
                   <Input value={observacoes} onChange={(e) => setObservacoes(e.target.value)} />
                 </div>
 
-                <div className="rounded-xl bg-muted px-4 py-3 text-sm">
-                  Peso líquido: <strong>{num(liquido)}</strong> {material?.unidade ?? "kg"} · Total:{" "}
-                  <strong>{brl(total)}</strong>
-                  {podeFinanceiro(sessao) && (
-                    <span className="ml-2 text-muted-foreground">
-                      · gera estoque e lançamento {tipo === "entrada" ? "a pagar" : "a receber"}
+                <div className="rounded-xl bg-primary/10 px-4 py-3 text-sm">
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Total do ticket</span>
+                    <span className="text-xl font-bold">{brl(totalGeral)}</span>
+                  </div>
+                  <div className="mt-1 flex items-center justify-between text-sm text-muted-foreground">
+                    <span>Peso líquido total</span>
+                    <span>
+                      {num(pesoTotal)} {materiais.find((m) => m.id === itens[0]?.materialId)?.unidade ?? "kg"}
                     </span>
+                  </div>
+                  {podeFinanceiro(sessao) && (
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      Gera estoque e lançamento{itens.length > 1 ? "s" : ""}{tipo === "entrada" ? " a pagar" : " a receber"}
+                      para cada item.
+                    </p>
                   )}
                 </div>
               </div>
               <DialogFooter>
                 <Button variant="brand" onClick={() => salvar.mutate()} disabled={salvar.isPending}>
-                  Registrar e emitir ticket
+                  {itens.length > 1 ? `Registrar ${itens.length} itens e emitir tickets` : "Registrar e emitir ticket"}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -514,7 +674,7 @@ function Estoque() {
                     <TableCell className="text-right">{num(m.quantidade)}</TableCell>
                     <TableCell className="text-right">{brl(m.valor_total)}</TableCell>
                     <TableCell className="text-right">
-                      <Button size="sm" variant="ghost" onClick={() => setTicketAberto(m)}>
+                      <Button size="sm" variant="ghost" onClick={() => setTicketAberto([m])}>
                         <TicketIcon className="h-4 w-4" /> Ticket
                       </Button>
                     </TableCell>
@@ -558,11 +718,19 @@ function Estoque() {
       <Dialog open={!!ticketAberto} onOpenChange={(o) => !o && setTicketAberto(null)}>
         <DialogContent className="max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Ticket nº {ticketAberto?.numero_ticket ?? ""}</DialogTitle>
+            <DialogTitle>
+              {ticketAberto && ticketAberto.length > 1
+                ? `${ticketAberto.length} tickets`
+                : `Ticket nº ${ticketAberto?.[0]?.numero_ticket ?? ""}`}
+            </DialogTitle>
           </DialogHeader>
           {dadosTicket && (
-            <div className="flex justify-center">
-              <TicketPesagem ref={ticketRef} dados={dadosTicket} />
+            <div className="flex flex-col gap-4 items-center">
+              {dadosTicket.map((d, i) => (
+                <div key={i} className="flex justify-center">
+                  <TicketPesagem ref={i === 0 ? ticketRef : undefined} dados={d} />
+                </div>
+              ))}
             </div>
           )}
           <DialogFooter>
