@@ -212,6 +212,11 @@ function Estoque() {
       });
       if (itensValidos.length === 0) throw new Error("Adicione pelo menos um material com peso");
 
+      const pagoEmCaixa = tipo === "entrada" && formaPagamento === "caixa";
+      if (pagoEmCaixa && !caixaAberto) {
+        throw new Error("Abra o caixa do dia na página Caixa antes de pagar em dinheiro");
+      }
+
       let parceiro = parceiroId || null;
       if (!parceiro && novoParceiro.trim()) {
         const tabela = tipo === "entrada" ? "fornecedores" : "clientes";
