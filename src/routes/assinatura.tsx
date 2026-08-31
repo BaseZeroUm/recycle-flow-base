@@ -109,7 +109,7 @@ function Assinatura() {
             <div className="flex flex-col items-center gap-2 rounded-2xl border bg-background p-6 text-center">
               <p className="text-sm text-muted-foreground">Mensal</p>
               <p className="text-4xl font-extrabold">
-                R$300<span className="text-base font-medium text-muted-foreground">/mês</span>
+                R$150<span className="text-base font-medium text-muted-foreground">/mês</span>
               </p>
               <p className="text-xs text-muted-foreground">Cancele quando quiser.</p>
             </div>
@@ -119,9 +119,9 @@ function Assinatura() {
               </span>
               <p className="text-sm text-muted-foreground">Trimestral</p>
               <p className="text-4xl font-extrabold">
-                R$200<span className="text-base font-medium text-muted-foreground">/mês</span>
+                R$400<span className="text-base font-medium text-muted-foreground">/mês</span>
               </p>
-              <p className="text-xs text-muted-foreground">R$600 a cada 3 meses.</p>
+              <p className="text-xs text-muted-foreground">R$1.200 a cada 3 meses.</p>
             </div>
           </div>
 
