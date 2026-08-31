@@ -12,9 +12,12 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { ArrowDownRight, ArrowUpRight, Minus } from "lucide-react";
+import { ArrowDownRight, ArrowUpRight, Minus, Printer } from "lucide-react";
 import { PageHeader, StatCard } from "@/components/PageHeader";
 import { brl, monthLabel, num } from "@/lib/format";
+import { imprimirRelatorio } from "@/lib/impressao";
+import { Button } from "@/components/ui/button";
+import { useSessao } from "@/hooks/use-sessao";
 import {
   calcularSaldos,
   useMateriais,
@@ -67,6 +70,7 @@ function Producao() {
   const [de, setDe] = useState(hoje);
   const [ate, setAte] = useState(hoje);
 
+  const { data: sessao } = useSessao();
   const { data: materiais = [] } = useMateriais(true);
   const { data: movs = [] } = useMovimentacoes();
   const { data: fornecedores = [] } = useParceiros("fornecedores");
@@ -235,11 +239,67 @@ function Producao() {
         ? "Estoque reduzindo: vendendo mais rápido do que compra"
         : "Entrada e saída equilibradas";
 
+  function imprimir() {
+    const periodoLabel =
+      periodo === "personalizado"
+        ? `${intervalo.inicio} a ${intervalo.fim}`
+        : periodo === "semana"
+          ? "últimos 7 dias"
+          : periodo === "mes"
+            ? "últimos 30 dias"
+            : "últimos 90 dias";
+    const materialLabel = materialId === "todos" ? "Todos os materiais" : nomeMaterial(materialId);
+    const tabGiro = `<h2>Entrada x saída e giro por material</h2>
+      <table><thead><tr><th>Material</th><th class="r">Entrada (kg)</th><th class="r">Saída (kg)</th><th class="r">Diferença</th><th class="r">Saldo atual</th><th class="r">Giro (dias)</th></tr></thead>
+      <tbody>${
+        giro
+          .map(
+            (m) =>
+              `<tr><td>${m.nome}</td><td class="r">${num(m.entrada)}</td><td class="r">${num(m.saida)}</td><td class="r">${num(m.entrada - m.saida)}</td><td class="r">${num(m.saldoAtual)}</td><td class="r">${m.diasGiro === null ? "—" : `${num(m.diasGiro, 1)} d`}</td></tr>`,
+          )
+          .join("") || '<tr><td colspan="6">Nenhuma movimentação no período.</td></tr>'
+      }</tbody>
+      <tfoot><tr><td>Total</td><td class="r">${num(pesoEntrada)}</td><td class="r">${num(pesoSaida)}</td><td class="r">${num(diferenca)}</td><td colspan="2" /></tr></tfoot></table>`;
+    const tabMargens = `<h2>Ranking de materiais por margem</h2>
+      <table><thead><tr><th>Material</th><th class="r">Compra médio/kg</th><th class="r">Venda médio/kg</th><th class="r">Margem/kg</th><th class="r">Margem %</th></tr></thead>
+      <tbody>${
+        margens
+          .map(
+            (m) =>
+              `<tr><td>${m.nome}</td><td class="r">${brl(m.precoCompra)}</td><td class="r">${brl(m.precoVenda)}</td><td class="r">${brl(m.margem)}</td><td class="r">${m.percentual === null ? "—" : `${m.percentual.toFixed(1)}%`}</td></tr>`,
+          )
+          .join("") || '<tr><td colspan="5">Sem dados de compra/venda no período.</td></tr>'
+      }</tbody></table>`;
+    const top = (r: { total: number; itens: { nome: string; peso: number; share: number }[] }, tituloTop: string) =>
+      `<h2>${tituloTop}</h2><table><thead><tr><th>Parceiro</th><th class="r">Peso (kg)</th><th class="r">Participação</th></tr></thead><tbody>${
+        r.itens
+          .map((x) => `<tr><td>${x.nome}</td><td class="r">${num(x.peso)}</td><td class="r">${x.share.toFixed(1)}%</td></tr>`)
+          .join("") || '<tr><td colspan="3">Sem movimentação.</td></tr>'
+      }</tbody></table>`;
+    const impactoHtml = `<h2>Impacto acumulado (desde o início da operação)</h2>
+      <table><thead><tr><th>Material</th><th class="r">Toneladas recicladas</th></tr></thead><tbody>${
+        impacto.itens
+          .map((x) => `<tr><td>${x.nome}</td><td class="r">${num(x.toneladas, 2)} t</td></tr>`)
+          .join("") || '<tr><td colspan="2">Sem saídas registradas.</td></tr>'
+      }</tbody><tfoot><tr><td>Total</td><td class="r">${num(impacto.total, 2)} t</td></tr></tfoot></table>`;
+    imprimirRelatorio({
+      titulo: `${sessao?.empresaNome ?? "Empresa"} — Produção`,
+      nomeArquivo: "Producao",
+      subtitulo: `Período: ${periodoLabel} · ${materialLabel} · emitido em ${new Date().toLocaleString("pt-BR")}`,
+      corpo: tabGiro + tabMargens + top(topFornecedores, "Top 5 fornecedores") + top(topClientes, "Top 5 clientes") + impactoHtml,
+    });
+  }
+
   return (
     <div>
       <PageHeader
         titulo="Produção"
         descricao="Análise operacional derivada automaticamente dos tickets de pesagem."
+        acoes={
+          <Button size="sm" variant="outline" onClick={imprimir} className="shrink-0">
+            <Printer className="h-4 w-4" /> Imprimir / PDF
+          </Button>
+        }
       />
 
       <div className="mb-6 flex flex-wrap items-end gap-3 rounded-2xl border bg-card p-4 shadow-card">

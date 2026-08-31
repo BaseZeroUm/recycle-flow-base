@@ -12,10 +12,13 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { Printer } from "lucide-react";
 import { PageHeader, StatCard } from "@/components/PageHeader";
 import { brl, monthKey, monthLabel } from "@/lib/format";
+import { imprimirRelatorio } from "@/lib/impressao";
 import { useLancamentos } from "@/lib/dados";
 import { podeFinanceiro, useSessao } from "@/hooks/use-sessao";
+import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
@@ -81,6 +84,25 @@ function Fluxo() {
   const entradas = linhas.reduce((s, l) => s + l.entradas, 0);
   const saidas = linhas.reduce((s, l) => s + l.saidas, 0);
 
+  function imprimir() {
+    const corpo = `<table><thead><tr><th>Mês</th><th class="r">Entradas</th><th class="r">Saídas</th><th class="r">Saldo</th><th class="r">Acumulado</th></tr></thead>
+      <tbody>${
+        linhas
+          .map(
+            (l) =>
+              `<tr><td>${l.label}</td><td class="r">${brl(l.entradas)}</td><td class="r">${brl(l.saidas)}</td><td class="r">${brl(l.saldo)}</td><td class="r"><b>${brl(l.acumulado)}</b></td></tr>`,
+          )
+          .join("") || '<tr><td colspan="5">Nenhum movimento no período.</td></tr>'
+      }</tbody>
+      <tfoot><tr><td>Total</td><td class="r">${brl(entradas)}</td><td class="r">${brl(saidas)}</td><td class="r">${brl(entradas - saidas)}</td><td /></tr></tfoot></table>`;
+    imprimirRelatorio({
+      titulo: `${sessao?.empresaNome ?? "Empresa"} — Fluxo de caixa`,
+      nomeArquivo: "Fluxo-de-caixa",
+      subtitulo: `Base ${base === "pago" ? "realizada" : "prevista"} · últimos ${meses} mês(es) · emitido em ${new Date().toLocaleString("pt-BR")}`,
+      corpo,
+    });
+  }
+
   return (
     <div>
       <PageHeader
@@ -88,6 +110,9 @@ function Fluxo() {
         descricao="Entradas, saídas e saldo acumulado por mês."
         acoes={
           <>
+            <Button size="sm" variant="outline" onClick={imprimir} className="shrink-0">
+              <Printer className="h-4 w-4" /> Imprimir / PDF
+            </Button>
             <Select value={base} onValueChange={(v) => setBase(v as "pago" | "previsto")}>
               <SelectTrigger className="w-40">
                 <SelectValue />

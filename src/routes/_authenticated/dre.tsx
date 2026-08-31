@@ -1,9 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
+import { Printer } from "lucide-react";
 import { PageHeader, StatCard } from "@/components/PageHeader";
 import { brl } from "@/lib/format";
+import { imprimirRelatorio } from "@/lib/impressao";
 import { calcularSaldos, useCategorias, useLancamentos, useMateriais, useMovimentacoes } from "@/lib/dados";
 import { podeFinanceiro, useSessao } from "@/hooks/use-sessao";
+import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export const Route = createFileRoute("/_authenticated/dre")({
@@ -104,23 +107,44 @@ function Dre() {
     { label: "= Resultado líquido", valor: resultadoLiquido, destaque: true },
   ];
 
+  function imprimir() {
+    const corpo = `<table><tbody>${linhas
+      .map(
+        (l) =>
+          `<tr${l.destaque ? ' style="font-weight:700;border-top:2px solid #111"' : ""}><td>${l.label}</td><td class="r">${brl(l.valor)}</td></tr>`,
+      )
+      .join("")}</tbody>
+      <tfoot><tr><td>Margem líquida</td><td class="r">${margem.toFixed(1)}%</td></tr></tfoot></table>`;
+    imprimirRelatorio({
+      titulo: `${sessao?.empresaNome ?? "Empresa"} — DRE`,
+      nomeArquivo: "DRE",
+      subtitulo: `Período: últimos ${meses} mês(es) · emitido em ${new Date().toLocaleString("pt-BR")}`,
+      corpo,
+    });
+  }
+
   return (
     <div>
       <PageHeader
         titulo="DRE"
         descricao="Demonstrativo de resultado gerado a partir dos lançamentos e do estoque."
         acoes={
-          <Select value={meses} onValueChange={setMeses}>
-            <SelectTrigger className="w-44">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="1">Mês atual</SelectItem>
-              <SelectItem value="3">Últimos 3 meses</SelectItem>
-              <SelectItem value="6">Últimos 6 meses</SelectItem>
-              <SelectItem value="12">Últimos 12 meses</SelectItem>
-            </SelectContent>
-          </Select>
+          <>
+            <Button size="sm" variant="outline" onClick={imprimir} className="shrink-0">
+              <Printer className="h-4 w-4" /> Imprimir / PDF
+            </Button>
+            <Select value={meses} onValueChange={setMeses}>
+              <SelectTrigger className="w-44">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1">Mês atual</SelectItem>
+                <SelectItem value="3">Últimos 3 meses</SelectItem>
+                <SelectItem value="6">Últimos 6 meses</SelectItem>
+                <SelectItem value="12">Últimos 12 meses</SelectItem>
+              </SelectContent>
+            </Select>
+          </>
         }
       />
 
