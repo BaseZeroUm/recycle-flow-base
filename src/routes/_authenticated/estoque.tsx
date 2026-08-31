@@ -691,7 +691,7 @@ function Estoque() {
                     <TableCell className="text-right">{num(m.quantidade)}</TableCell>
                     <TableCell className="text-right">{brl(m.valor_total)}</TableCell>
                     <TableCell className="text-right">
-                      <Button size="sm" variant="ghost" onClick={() => setTicketAberto([m])}>
+                      <Button size="sm" variant="ghost" onClick={() => abrirTicket(m)}>
                         <TicketIcon className="h-4 w-4" /> Ticket
                       </Button>
                     </TableCell>
