@@ -118,10 +118,8 @@ function Assinatura() {
                 Melhor custo
               </span>
               <p className="text-sm text-muted-foreground">Trimestral</p>
-              <p className="text-4xl font-extrabold">
-                R$400<span className="text-base font-medium text-muted-foreground">/mês</span>
-              </p>
-              <p className="text-xs text-muted-foreground">R$1.200 a cada 3 meses.</p>
+              <p className="text-4xl font-extrabold">R$400</p>
+              <p className="text-xs text-muted-foreground">R$133/mês — R$400 pagos a cada 3 meses.</p>
             </div>
           </div>
 
