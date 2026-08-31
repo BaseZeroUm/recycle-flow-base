@@ -196,12 +196,16 @@ function Financeiro() {
         titulo="Financeiro"
         descricao="Contas a pagar e a receber, com baixa de pagamento."
         acoes={
-          <Dialog open={aberto} onOpenChange={setAberto}>
-            <DialogTrigger asChild>
-              <Button variant="brand">
-                <Plus className="h-4 w-4" /> Novo lançamento
-              </Button>
-            </DialogTrigger>
+          <>
+            <Button size="sm" variant="outline" onClick={imprimir} className="shrink-0">
+              <Printer className="h-4 w-4" /> Imprimir / PDF
+            </Button>
+            <Dialog open={aberto} onOpenChange={setAberto}>
+              <DialogTrigger asChild>
+                <Button variant="brand">
+                  <Plus className="h-4 w-4" /> Novo lançamento
+                </Button>
+              </DialogTrigger>
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Novo lançamento</DialogTitle>
