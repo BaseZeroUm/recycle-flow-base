@@ -16,6 +16,7 @@ import {
   type Movimentacao,
 } from "@/lib/dados";
 import { podeFinanceiro, useSessao } from "@/hooks/use-sessao";
+import { aberturaDoDia, saldoAtual, useCaixaMovimentos } from "@/lib/caixa";
 import { TicketPesagem, textoWhatsApp, type DadosTicket } from "@/components/TicketPesagem";
 import { TicketAgrupado, textoWhatsAppAgrupado } from "@/components/TicketAgrupado";
 import { Button } from "@/components/ui/button";
