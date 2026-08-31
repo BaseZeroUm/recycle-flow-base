@@ -695,10 +695,17 @@ function Estoque() {
         }
       />
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard destaque label="Saldo total" valor={`${num(qtdEstoque)} kg`} />
         <StatCard label="Valor em estoque" valor={brl(valorEstoque)} detalhe="Custo médio de compra" />
         <StatCard label="Movimentações / tickets" valor={num(movs.length, 0)} />
+        {podeFinanceiro(sessao) && (
+          <StatCard
+            label="Caixa (dinheiro)"
+            valor={brl(caixaSaldo)}
+            detalhe={caixaAberto ? "Caixa aberto hoje" : "Caixa do dia não aberto"}
+          />
+        )}
       </div>
 
       <Tabs defaultValue="movs" className="mt-6">
