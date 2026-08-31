@@ -15,6 +15,7 @@ import { Route as AssinaturaRouteImport } from './routes/assinatura'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as RedefinirSenhaRouteImport } from './routes/redefinir-senha'
 import { Route as AuthenticatedCadastrosRouteImport } from './routes/_authenticated/cadastros'
+import { Route as AuthenticatedCaixaRouteImport } from './routes/_authenticated/caixa'
 import { Route as AuthenticatedDreRouteImport } from './routes/_authenticated/dre'
 import { Route as AuthenticatedEmpresaRouteImport } from './routes/_authenticated/empresa'
 import { Route as AuthenticatedEstoqueRouteImport } from './routes/_authenticated/estoque'
@@ -51,6 +52,11 @@ const RedefinirSenhaRoute = RedefinirSenhaRouteImport.update({
 const AuthenticatedCadastrosRoute = AuthenticatedCadastrosRouteImport.update({
   id: '/cadastros',
   path: '/cadastros',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedCaixaRoute = AuthenticatedCaixaRouteImport.update({
+  id: '/caixa',
+  path: '/caixa',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedDreRoute = AuthenticatedDreRouteImport.update({
@@ -101,6 +107,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/cadastros': typeof AuthenticatedCadastrosRoute
+  '/caixa': typeof AuthenticatedCaixaRoute
   '/dre': typeof AuthenticatedDreRoute
   '/empresa': typeof AuthenticatedEmpresaRoute
   '/estoque': typeof AuthenticatedEstoqueRoute
@@ -116,6 +123,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/cadastros': typeof AuthenticatedCadastrosRoute
+  '/caixa': typeof AuthenticatedCaixaRoute
   '/dre': typeof AuthenticatedDreRoute
   '/empresa': typeof AuthenticatedEmpresaRoute
   '/estoque': typeof AuthenticatedEstoqueRoute
@@ -133,6 +141,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/_authenticated/cadastros': typeof AuthenticatedCadastrosRoute
+  '/_authenticated/caixa': typeof AuthenticatedCaixaRoute
   '/_authenticated/dre': typeof AuthenticatedDreRoute
   '/_authenticated/empresa': typeof AuthenticatedEmpresaRoute
   '/_authenticated/estoque': typeof AuthenticatedEstoqueRoute
@@ -150,6 +159,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/redefinir-senha'
     | '/cadastros'
+    | '/caixa'
     | '/dre'
     | '/empresa'
     | '/estoque'
@@ -165,6 +175,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/redefinir-senha'
     | '/cadastros'
+    | '/caixa'
     | '/dre'
     | '/empresa'
     | '/estoque'
@@ -181,6 +192,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/redefinir-senha'
     | '/_authenticated/cadastros'
+    | '/_authenticated/caixa'
     | '/_authenticated/dre'
     | '/_authenticated/empresa'
     | '/_authenticated/estoque'
@@ -241,6 +253,13 @@ declare module '@tanstack/react-router' {
       path: '/cadastros'
       fullPath: '/cadastros'
       preLoaderRoute: typeof AuthenticatedCadastrosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/caixa': {
+      id: '/_authenticated/caixa'
+      path: '/caixa'
+      fullPath: '/caixa'
+      preLoaderRoute: typeof AuthenticatedCaixaRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/dre': {
@@ -304,6 +323,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedCadastrosRoute: typeof AuthenticatedCadastrosRoute
+  AuthenticatedCaixaRoute: typeof AuthenticatedCaixaRoute
   AuthenticatedDreRoute: typeof AuthenticatedDreRoute
   AuthenticatedEmpresaRoute: typeof AuthenticatedEmpresaRoute
   AuthenticatedEstoqueRoute: typeof AuthenticatedEstoqueRoute
@@ -316,6 +336,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCadastrosRoute: AuthenticatedCadastrosRoute,
+  AuthenticatedCaixaRoute: AuthenticatedCaixaRoute,
   AuthenticatedDreRoute: AuthenticatedDreRoute,
   AuthenticatedEmpresaRoute: AuthenticatedEmpresaRoute,
   AuthenticatedEstoqueRoute: AuthenticatedEstoqueRoute,

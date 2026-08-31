@@ -16,6 +16,7 @@ import {
   type Movimentacao,
 } from "@/lib/dados";
 import { podeFinanceiro, useSessao } from "@/hooks/use-sessao";
+import { aberturaDoDia, saldoAtual, useCaixaMovimentos } from "@/lib/caixa";
 import { TicketPesagem, textoWhatsApp, type DadosTicket } from "@/components/TicketPesagem";
 import { TicketAgrupado, textoWhatsAppAgrupado } from "@/components/TicketAgrupado";
 import { Button } from "@/components/ui/button";
@@ -90,7 +91,13 @@ function Estoque() {
   const [data, setData] = useState(new Date().toISOString().slice(0, 10));
   const [observacoes, setObservacoes] = useState("");
   const [busca, setBusca] = useState("");
+  const [formaPagamento, setFormaPagamento] = useState<"prazo" | "caixa">("prazo");
   const [ticketAberto, setTicketAberto] = useState<Movimentacao[] | null>(null);
+
+  const { data: caixaMovs = [] } = useCaixaMovimentos(!!sessao);
+  const caixaSaldo = saldoAtual(caixaMovs);
+  const caixaAberto = !!aberturaDoDia(caixaMovs);
+
 
   // Estado do carrinho
   const [itens, setItens] = useState<ItemCarrinho[]>([
@@ -205,6 +212,11 @@ function Estoque() {
       });
       if (itensValidos.length === 0) throw new Error("Adicione pelo menos um material com peso");
 
+      const pagoEmCaixa = tipo === "entrada" && formaPagamento === "caixa";
+      if (pagoEmCaixa && !caixaAberto) {
+        throw new Error("Abra o caixa do dia na página Caixa antes de pagar em dinheiro");
+      }
+
       let parceiro = parceiroId || null;
       if (!parceiro && novoParceiro.trim()) {
         const tabela = tipo === "entrada" ? "fornecedores" : "clientes";
@@ -229,6 +241,7 @@ function Estoque() {
           cliente_id: tipo === "saida" ? parceiro : null,
           observacoes: observacoes || null,
           responsavel: sessao.nome ?? null,
+          forma_pagamento: pagoEmCaixa ? "caixa" : "prazo",
           criado_por: sessao.userId,
         })
         .select("*")
@@ -269,11 +282,30 @@ function Estoque() {
             descricao: `Ticket ${ticket.numero_ticket} · ${tipo === "entrada" ? "Compra" : "Venda"} de ${material?.nome ?? "Material"}`,
             valor: total,
             data_vencimento: data,
-            status: "pendente",
+            data_pagamento: pagoEmCaixa ? data : null,
+            forma_pagamento: pagoEmCaixa ? "Caixa (dinheiro)" : null,
+            status: pagoEmCaixa ? "pago" : "pendente",
             movimentacao_id: mov.id,
             criado_por: sessao.userId,
           });
           if (erroLanc) throw erroLanc;
+        }
+      }
+
+      // Um único débito de caixa por ticket pago em dinheiro
+      if (pagoEmCaixa) {
+        const totalTicket = itensValidos.reduce((s, item) => s + calcItem(item).total, 0);
+        if (totalTicket > 0) {
+          const { error: erroCaixa } = await supabase.from("caixa_movimentos").insert({
+            empresa_id: sessao.empresaId,
+            data,
+            tipo: "compra",
+            valor: totalTicket,
+            descricao: `Ticket nº ${ticket.numero_ticket} · compra paga em dinheiro`,
+            ticket_id: ticket.id,
+            criado_por: sessao.userId,
+          });
+          if (erroCaixa) throw erroCaixa;
         }
       }
       return { ticket, movsCriadas };
@@ -282,6 +314,7 @@ function Estoque() {
       toast.success(`${movsCriadas.length} item(ns) registrado(s) · ticket nº ${ticket.numero_ticket}`);
       queryClient.invalidateQueries({ queryKey: ["movimentacoes"] });
       queryClient.invalidateQueries({ queryKey: ["lancamentos"] });
+      queryClient.invalidateQueries({ queryKey: ["caixa_movimentos"] });
       setAberto(false);
       setItens([
         {
@@ -603,6 +636,30 @@ function Estoque() {
                   </Button>
                 </div>
 
+                {tipo === "entrada" && (
+                  <div className="space-y-2">
+                    <Label>Forma de pagamento</Label>
+                    <Select
+                      value={formaPagamento}
+                      onValueChange={(v) => setFormaPagamento(v as "prazo" | "caixa")}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="caixa">Caixa (dinheiro)</SelectItem>
+                        <SelectItem value="prazo">A prazo / outro (PIX, transferência, boleto)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {formaPagamento === "caixa" && (
+                      <p className="text-xs text-muted-foreground">
+                        Saldo do caixa: <strong>{brl(caixaSaldo)}</strong>
+                        {caixaAberto ? " · caixa aberto hoje" : " · abra o caixa do dia antes de salvar"}
+                      </p>
+                    )}
+                  </div>
+                )}
+
                 <div className="space-y-2">
                   <Label>Observações</Label>
                   <Input value={observacoes} onChange={(e) => setObservacoes(e.target.value)} />
@@ -621,7 +678,9 @@ function Estoque() {
                   </div>
                   {podeFinanceiro(sessao) && (
                     <p className="mt-2 text-xs text-muted-foreground">
-                      Gera estoque e lançamento{itens.length > 1 ? "s" : ""}{tipo === "entrada" ? " a pagar" : " a receber"} para cada item — todos no mesmo ticket.
+                      {tipo === "entrada" && formaPagamento === "caixa"
+                        ? "Gera estoque, lançamento já pago e débito automático no caixa físico."
+                        : `Gera estoque e lançamento${itens.length > 1 ? "s" : ""}${tipo === "entrada" ? " a pagar" : " a receber"} para cada item — todos no mesmo ticket.`}
                     </p>
                   )}
                 </div>
@@ -636,10 +695,17 @@ function Estoque() {
         }
       />
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard destaque label="Saldo total" valor={`${num(qtdEstoque)} kg`} />
         <StatCard label="Valor em estoque" valor={brl(valorEstoque)} detalhe="Custo médio de compra" />
         <StatCard label="Movimentações / tickets" valor={num(movs.length, 0)} />
+        {podeFinanceiro(sessao) && (
+          <StatCard
+            label="Caixa (dinheiro)"
+            valor={brl(caixaSaldo)}
+            detalhe={caixaAberto ? "Caixa aberto hoje" : "Caixa do dia não aberto"}
+          />
+        )}
       </div>
 
       <Tabs defaultValue="movs" className="mt-6">

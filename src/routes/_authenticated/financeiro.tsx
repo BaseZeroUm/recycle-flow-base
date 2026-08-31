@@ -9,6 +9,7 @@ import { brl, dateBR } from "@/lib/format";
 import { imprimirRelatorio } from "@/lib/impressao";
 import { useCategorias, useLancamentos } from "@/lib/dados";
 import { podeFinanceiro, useSessao } from "@/hooks/use-sessao";
+import { aberturaDoDia, saldoAtual, useCaixaMovimentos } from "@/lib/caixa";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -43,6 +44,9 @@ function Financeiro() {
   const autorizado = podeFinanceiro(sessao);
   const { data: lancs = [] } = useLancamentos(autorizado);
   const { data: categorias = [] } = useCategorias();
+  const { data: caixaMovs = [] } = useCaixaMovimentos(autorizado);
+  const caixaSaldo = saldoAtual(caixaMovs);
+  const caixaAberto = !!aberturaDoDia(caixaMovs);
 
   const [aberto, setAberto] = useState(false);
   const [tipo, setTipo] = useState<"receita" | "despesa">("despesa");
@@ -51,29 +55,59 @@ function Financeiro() {
   const [categoriaId, setCategoriaId] = useState("");
   const [vencimento, setVencimento] = useState(new Date().toISOString().slice(0, 10));
   const [imposto, setImposto] = useState("nao");
+  const [pagarComCaixa, setPagarComCaixa] = useState("nao");
 
   const criar = useMutation({
     mutationFn: async () => {
       if (!sessao) throw new Error("Sessão inválida");
-      const { error } = await supabase.from("lancamentos").insert({
-        empresa_id: sessao.empresaId,
-        tipo,
-        descricao,
-        valor: Number(valor),
-        categoria_id: tipo === "despesa" ? categoriaId || null : null,
-        data_vencimento: vencimento,
-        imposto: imposto === "sim",
-        status: "pendente",
-        criado_por: sessao.userId,
-      });
+      const valorNum = Number(valor);
+      if (!Number.isFinite(valorNum) || valorNum <= 0) throw new Error("Informe um valor válido");
+      const comCaixa = tipo === "despesa" && pagarComCaixa === "sim";
+      if (comCaixa && !caixaAberto) {
+        throw new Error("Abra o caixa do dia na página Caixa antes de pagar em dinheiro");
+      }
+      const hoje = new Date().toISOString().slice(0, 10);
+
+      const { data: lanc, error } = await supabase
+        .from("lancamentos")
+        .insert({
+          empresa_id: sessao.empresaId,
+          tipo,
+          descricao,
+          valor: valorNum,
+          categoria_id: tipo === "despesa" ? categoriaId || null : null,
+          data_vencimento: vencimento,
+          data_pagamento: comCaixa ? hoje : null,
+          forma_pagamento: comCaixa ? "Caixa (dinheiro)" : null,
+          imposto: imposto === "sim",
+          status: comCaixa ? "pago" : "pendente",
+          criado_por: sessao.userId,
+        })
+        .select("id")
+        .single();
       if (error) throw error;
+
+      if (comCaixa) {
+        const { error: erroCaixa } = await supabase.from("caixa_movimentos").insert({
+          empresa_id: sessao.empresaId,
+          data: hoje,
+          tipo: "despesa",
+          valor: valorNum,
+          descricao: `Despesa paga com caixa · ${descricao}`,
+          lancamento_id: lanc.id,
+          criado_por: sessao.userId,
+        });
+        if (erroCaixa) throw erroCaixa;
+      }
     },
     onSuccess: () => {
       toast.success("Lançamento criado");
       queryClient.invalidateQueries({ queryKey: ["lancamentos"] });
+      queryClient.invalidateQueries({ queryKey: ["caixa_movimentos"] });
       setAberto(false);
       setDescricao("");
       setValor("");
+      setPagarComCaixa("nao");
     },
     onError: (e: Error) => toast.error("Erro ao salvar", { description: e.message }),
   });
@@ -268,6 +302,26 @@ function Financeiro() {
                         <SelectItem value="sim">Sim</SelectItem>
                       </SelectContent>
                     </Select>
+                  </div>
+                )}
+                {tipo === "despesa" && (
+                  <div className="space-y-2">
+                    <Label>Pagar com caixa?</Label>
+                    <Select value={pagarComCaixa} onValueChange={setPagarComCaixa}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="nao">Não</SelectItem>
+                        <SelectItem value="sim">Sim — debitar do caixa em dinheiro</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {pagarComCaixa === "sim" && (
+                      <p className="text-xs text-muted-foreground">
+                        Saldo do caixa: <strong>{brl(caixaSaldo)}</strong>
+                        {caixaAberto ? " · a despesa já nasce paga" : " · abra o caixa do dia antes de salvar"}
+                      </p>
+                    )}
                   </div>
                 )}
               </div>

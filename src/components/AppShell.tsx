@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import {
+  Banknote,
   BarChart3,
   Boxes,
   Building2,
@@ -49,6 +50,7 @@ const grupos: { label: string; itens: Item[] }[] = [
     label: "Operação",
     itens: [
       { title: "Estoque e pesagem", url: "/estoque", icon: Scale, acesso: "todos" },
+      { title: "Caixa", url: "/caixa", icon: Banknote, acesso: "financeiro" },
       { title: "Financeiro", url: "/financeiro", icon: Wallet, acesso: "financeiro" },
     ],
   },
