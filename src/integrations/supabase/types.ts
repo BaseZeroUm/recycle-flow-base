@@ -369,6 +369,7 @@ export type Database = {
           peso_bruto: number | null
           quantidade: number
           tara: number | null
+          ticket_id: string | null
           tipo: Database["public"]["Enums"]["tipo_movimentacao"]
           updated_at: string
           valor_total: number
@@ -390,6 +391,7 @@ export type Database = {
           peso_bruto?: number | null
           quantidade: number
           tara?: number | null
+          ticket_id?: string | null
           tipo: Database["public"]["Enums"]["tipo_movimentacao"]
           updated_at?: string
           valor_total?: number
@@ -411,6 +413,7 @@ export type Database = {
           peso_bruto?: number | null
           quantidade?: number
           tara?: number | null
+          ticket_id?: string | null
           tipo?: Database["public"]["Enums"]["tipo_movimentacao"]
           updated_at?: string
           valor_total?: number
@@ -444,6 +447,13 @@ export type Database = {
             columns: ["material_id"]
             isOneToOne: false
             referencedRelation: "materiais"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "movimentacoes_estoque_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets"
             referencedColumns: ["id"]
           },
         ]
@@ -482,6 +492,73 @@ export type Database = {
             columns: ["empresa_id"]
             isOneToOne: false
             referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tickets: {
+        Row: {
+          cliente_id: string | null
+          created_at: string
+          criado_por: string | null
+          data: string
+          empresa_id: string
+          fornecedor_id: string | null
+          id: string
+          numero_ticket: number | null
+          observacoes: string | null
+          responsavel: string | null
+          tipo: Database["public"]["Enums"]["tipo_movimentacao"]
+          updated_at: string
+        }
+        Insert: {
+          cliente_id?: string | null
+          created_at?: string
+          criado_por?: string | null
+          data?: string
+          empresa_id: string
+          fornecedor_id?: string | null
+          id?: string
+          numero_ticket?: number | null
+          observacoes?: string | null
+          responsavel?: string | null
+          tipo: Database["public"]["Enums"]["tipo_movimentacao"]
+          updated_at?: string
+        }
+        Update: {
+          cliente_id?: string | null
+          created_at?: string
+          criado_por?: string | null
+          data?: string
+          empresa_id?: string
+          fornecedor_id?: string | null
+          id?: string
+          numero_ticket?: number | null
+          observacoes?: string | null
+          responsavel?: string | null
+          tipo?: Database["public"]["Enums"]["tipo_movimentacao"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tickets_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tickets_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tickets_fornecedor_id_fkey"
+            columns: ["fornecedor_id"]
+            isOneToOne: false
+            referencedRelation: "fornecedores"
             referencedColumns: ["id"]
           },
         ]
