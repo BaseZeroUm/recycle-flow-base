@@ -109,6 +109,44 @@ function Index() {
             </div>
           ))}
         </section>
+
+        <section className="mt-24">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+            Por dentro do sistema
+          </p>
+          <h2 className="mt-4 max-w-2xl text-3xl font-extrabold leading-tight md:text-4xl">
+            Veja o Base 01 em operação
+          </h2>
+          <p className="mt-4 max-w-xl text-muted-foreground">
+            Telas reais de uma operação de reciclagem com um mês de dados — o que você vê aqui é o
+            que a sua equipe usa no dia a dia.
+          </p>
+          <div className="mt-10 grid gap-8 md:grid-cols-2">
+            {telas.map((t) => (
+              <figure key={t.titulo}>
+                <div className="overflow-hidden rounded-2xl border bg-card shadow-card">
+                  <img
+                    src={t.imagem}
+                    alt={t.alt}
+                    loading="lazy"
+                    className="h-auto w-full transition-transform duration-300 hover:scale-[1.02]"
+                  />
+                </div>
+                <figcaption className="mt-4">
+                  <h3 className="text-base font-bold">{t.titulo}</h3>
+                  <p className="mt-1 text-sm text-muted-foreground">{t.texto}</p>
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+          <div className="mt-12">
+            <Button asChild size="lg" variant="brand">
+              <Link to="/auth">
+                Testar grátis por 1 dia <ArrowUpRight className="ml-1 h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+        </section>
       </main>
     </div>
   );
