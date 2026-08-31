@@ -117,6 +117,35 @@ function Financeiro() {
     return <Badge variant="outline">Pendente</Badge>;
   }
 
+  function statusTexto(l: (typeof lancs)[number]) {
+    if (l.status === "pago") return "Pago";
+    if (l.data_vencimento < hoje) return "Atrasado";
+    return "Pendente";
+  }
+
+  function imprimir() {
+    const tabelaHtml = (lista: typeof lancs, tituloAba: string) => {
+      const linhas = lista
+        .map(
+          (l) =>
+            `<tr><td>${dateBR(l.data_vencimento)}</td><td>${l.descricao}</td><td>${
+              categorias.find((c) => c.id === l.categoria_id)?.nome ?? "—"
+            }</td><td>${statusTexto(l)}</td><td class="r">${brl(l.valor)}</td></tr>`,
+        )
+        .join("");
+      const total = lista.reduce((s, l) => s + Number(l.valor), 0);
+      return `<h2>${tituloAba}</h2>
+        <table><thead><tr><th>Vencimento</th><th>Descrição</th><th>Categoria</th><th>Status</th><th class="r">Valor</th></tr></thead>
+        <tbody>${linhas || '<tr><td colspan="5">Nenhum lançamento.</td></tr>'}</tbody>
+        <tfoot><tr><td colspan="4">Total (${lista.length})</td><td class="r">${brl(total)}</td></tr></tfoot></table>`;
+    };
+    imprimirRelatorio({
+      titulo: `${sessao?.empresaNome ?? "Empresa"} — Financeiro`,
+      nomeArquivo: "Financeiro",
+      corpo: tabelaHtml(despesas, "Contas a pagar") + tabelaHtml(receitas, "Contas a receber"),
+    });
+  }
+
   function tabela(lista: typeof lancs) {
     return (
       <div className="overflow-hidden rounded-2xl border bg-card shadow-card">
