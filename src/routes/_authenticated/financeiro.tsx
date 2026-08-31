@@ -304,6 +304,26 @@ function Financeiro() {
                     </Select>
                   </div>
                 )}
+                {tipo === "despesa" && (
+                  <div className="space-y-2">
+                    <Label>Pagar com caixa?</Label>
+                    <Select value={pagarComCaixa} onValueChange={setPagarComCaixa}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="nao">Não</SelectItem>
+                        <SelectItem value="sim">Sim — debitar do caixa em dinheiro</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {pagarComCaixa === "sim" && (
+                      <p className="text-xs text-muted-foreground">
+                        Saldo do caixa: <strong>{brl(caixaSaldo)}</strong>
+                        {caixaAberto ? " · a despesa já nasce paga" : " · abra o caixa do dia antes de salvar"}
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
               <DialogFooter>
                 <Button variant="brand" onClick={() => criar.mutate()} disabled={criar.isPending}>
