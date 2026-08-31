@@ -35,7 +35,7 @@ import {
   useParceiros,
 } from "@/lib/dados";
 import { podeFinanceiro, useSessao } from "@/hooks/use-sessao";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { FiltroPeriodo, hojeIso, inicioDoMesAtual } from "@/components/FiltroPeriodo";
 
 export const Route = createFileRoute("/_authenticated/painel")({
   head: () => ({
@@ -61,15 +61,8 @@ function Painel() {
   const { data: fornecedores = [] } = useParceiros("fornecedores");
   const { data: clientes = [] } = useParceiros("clientes");
 
-  const limite = useMemo(() => {
-    const d = new Date();
-    d.setMonth(d.getMonth() - (Number(meses) - 1));
-    d.setDate(1);
-    return d.toISOString().slice(0, 10);
-  }, [meses]);
-
-  const movsPeriodo = movs.filter((m) => m.data >= limite);
-  const lancsPeriodo = lancs.filter((l) => l.data_vencimento >= limite);
+  const movsPeriodo = movs.filter((m) => m.data >= de && m.data <= ate);
+  const lancsPeriodo = lancs.filter((l) => l.data_vencimento >= de && l.data_vencimento <= ate);
 
   const saldos = calcularSaldos(materiais, movs);
   const valorEstoque = saldos.reduce((s, x) => s + x.valorEstoque, 0);
@@ -249,19 +242,7 @@ function Painel() {
       <PageHeader
         titulo="Painel"
         descricao="Visão geral do negócio com insights gerados a partir dos seus dados."
-        acoes={
-          <Select value={meses} onValueChange={setMeses}>
-            <SelectTrigger className="w-44">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="1">Este mês</SelectItem>
-              <SelectItem value="3">Últimos 3 meses</SelectItem>
-              <SelectItem value="6">Últimos 6 meses</SelectItem>
-              <SelectItem value="12">Últimos 12 meses</SelectItem>
-            </SelectContent>
-          </Select>
-        }
+        acoes={<FiltroPeriodo de={de} ate={ate} onChange={(d, a) => { setDe(d); setAte(a); }} />}
       />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
