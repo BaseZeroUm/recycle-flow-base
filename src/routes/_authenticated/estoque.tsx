@@ -91,7 +91,13 @@ function Estoque() {
   const [data, setData] = useState(new Date().toISOString().slice(0, 10));
   const [observacoes, setObservacoes] = useState("");
   const [busca, setBusca] = useState("");
+  const [formaPagamento, setFormaPagamento] = useState<"prazo" | "caixa">("prazo");
   const [ticketAberto, setTicketAberto] = useState<Movimentacao[] | null>(null);
+
+  const { data: caixaMovs = [] } = useCaixaMovimentos(!!sessao);
+  const caixaSaldo = saldoAtual(caixaMovs);
+  const caixaAberto = !!aberturaDoDia(caixaMovs);
+
 
   // Estado do carrinho
   const [itens, setItens] = useState<ItemCarrinho[]>([
