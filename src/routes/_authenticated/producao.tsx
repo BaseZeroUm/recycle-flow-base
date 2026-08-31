@@ -28,6 +28,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { FiltroPeriodo, hojeIso, inicioDoMesAtual, periodoLabel as fmtPeriodo } from "@/components/FiltroPeriodo";
 
 export const Route = createFileRoute("/_authenticated/producao")({
   head: () => ({
@@ -64,11 +65,9 @@ function semanaLabel(key: string) {
 }
 
 function Producao() {
-  const [periodo, setPeriodo] = useState("mes");
   const [materialId, setMaterialId] = useState("todos");
-  const hoje = iso(new Date());
-  const [de, setDe] = useState(hoje);
-  const [ate, setAte] = useState(hoje);
+  const [de, setDe] = useState(inicioDoMesAtual());
+  const [ate, setAte] = useState(hojeIso());
 
   const { data: sessao } = useSessao();
   const { data: materiais = [] } = useMateriais(true);
@@ -76,15 +75,7 @@ function Producao() {
   const { data: fornecedores = [] } = useParceiros("fornecedores");
   const { data: clientes = [] } = useParceiros("clientes");
 
-  const intervalo = useMemo(() => {
-    const fim = new Date();
-    const inicio = new Date();
-    if (periodo === "semana") inicio.setDate(inicio.getDate() - 6);
-    else if (periodo === "mes") inicio.setDate(inicio.getDate() - 29);
-    else if (periodo === "trimestre") inicio.setDate(inicio.getDate() - 89);
-    else return { inicio: de, fim: ate };
-    return { inicio: iso(inicio), fim: iso(fim) };
-  }, [periodo, de, ate]);
+  const intervalo = useMemo(() => ({ inicio: de, fim: ate }), [de, ate]);
 
   const nomeMaterial = (id: string) => materiais.find((m) => m.id === id)?.nome ?? "Material";
 
