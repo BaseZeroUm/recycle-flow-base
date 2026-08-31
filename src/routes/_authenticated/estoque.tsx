@@ -241,6 +241,7 @@ function Estoque() {
           cliente_id: tipo === "saida" ? parceiro : null,
           observacoes: observacoes || null,
           responsavel: sessao.nome ?? null,
+          forma_pagamento: pagoEmCaixa ? "caixa" : "prazo",
           criado_por: sessao.userId,
         })
         .select("*")
