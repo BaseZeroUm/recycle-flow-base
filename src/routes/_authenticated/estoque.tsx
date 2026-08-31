@@ -282,11 +282,30 @@ function Estoque() {
             descricao: `Ticket ${ticket.numero_ticket} · ${tipo === "entrada" ? "Compra" : "Venda"} de ${material?.nome ?? "Material"}`,
             valor: total,
             data_vencimento: data,
-            status: "pendente",
+            data_pagamento: pagoEmCaixa ? data : null,
+            forma_pagamento: pagoEmCaixa ? "Caixa (dinheiro)" : null,
+            status: pagoEmCaixa ? "pago" : "pendente",
             movimentacao_id: mov.id,
             criado_por: sessao.userId,
           });
           if (erroLanc) throw erroLanc;
+        }
+      }
+
+      // Um único débito de caixa por ticket pago em dinheiro
+      if (pagoEmCaixa) {
+        const totalTicket = itensValidos.reduce((s, item) => s + calcItem(item).total, 0);
+        if (totalTicket > 0) {
+          const { error: erroCaixa } = await supabase.from("caixa_movimentos").insert({
+            empresa_id: sessao.empresaId,
+            data,
+            tipo: "compra",
+            valor: totalTicket,
+            descricao: `Ticket nº ${ticket.numero_ticket} · compra paga em dinheiro`,
+            ticket_id: ticket.id,
+            criado_por: sessao.userId,
+          });
+          if (erroCaixa) throw erroCaixa;
         }
       }
       return { ticket, movsCriadas };
@@ -295,6 +314,7 @@ function Estoque() {
       toast.success(`${movsCriadas.length} item(ns) registrado(s) · ticket nº ${ticket.numero_ticket}`);
       queryClient.invalidateQueries({ queryKey: ["movimentacoes"] });
       queryClient.invalidateQueries({ queryKey: ["lancamentos"] });
+      queryClient.invalidateQueries({ queryKey: ["caixa_movimentos"] });
       setAberto(false);
       setItens([
         {
