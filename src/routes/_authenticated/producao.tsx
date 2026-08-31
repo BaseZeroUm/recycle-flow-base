@@ -209,17 +209,6 @@ function Producao() {
   const topFornecedores = useMemo(() => ranking("entrada"), [filtrados, fornecedores]);
   const topClientes = useMemo(() => ranking("saida"), [filtrados, clientes]);
 
-  // 6. Impacto acumulado (histórico completo)
-  const impacto = useMemo(() => {
-    const mapa = new Map<string, number>();
-    movs
-      .filter((m) => m.tipo === "saida")
-      .forEach((m) => mapa.set(m.material_id, (mapa.get(m.material_id) ?? 0) + Number(m.quantidade)));
-    const itens = [...mapa.entries()]
-      .map(([id, kg]) => ({ nome: nomeMaterial(id), toneladas: kg / 1000 }))
-      .sort((a, b) => b.toneladas - a.toneladas);
-    return { itens, total: itens.reduce((s, x) => s + x.toneladas, 0) };
-  }, [movs, materiais]);
 
   const TendenciaIcone = diferenca > 0 ? ArrowUpRight : diferenca < 0 ? ArrowDownRight : Minus;
   const tendenciaTexto =
@@ -258,17 +247,11 @@ function Producao() {
           .map((x) => `<tr><td>${x.nome}</td><td class="r">${num(x.peso)}</td><td class="r">${x.share.toFixed(1)}%</td></tr>`)
           .join("") || '<tr><td colspan="3">Sem movimentação.</td></tr>'
       }</tbody></table>`;
-    const impactoHtml = `<h2>Impacto acumulado (desde o início da operação)</h2>
-      <table><thead><tr><th>Material</th><th class="r">Toneladas recicladas</th></tr></thead><tbody>${
-        impacto.itens
-          .map((x) => `<tr><td>${x.nome}</td><td class="r">${num(x.toneladas, 2)} t</td></tr>`)
-          .join("") || '<tr><td colspan="2">Sem saídas registradas.</td></tr>'
-      }</tbody><tfoot><tr><td>Total</td><td class="r">${num(impacto.total, 2)} t</td></tr></tfoot></table>`;
     imprimirRelatorio({
       titulo: `${sessao?.empresaNome ?? "Empresa"} — Produção`,
       nomeArquivo: "Producao",
       subtitulo: `Período: ${fmtPeriodo(de, ate)} · ${materialLabel} · emitido em ${new Date().toLocaleString("pt-BR")}`,
-      corpo: tabGiro + tabMargens + top(topFornecedores, "Top 5 fornecedores") + top(topClientes, "Top 5 clientes") + impactoHtml,
+      corpo: tabGiro + tabMargens + top(topFornecedores, "Top 5 fornecedores") + top(topClientes, "Top 5 clientes"),
     });
   }
 
@@ -506,20 +489,6 @@ function Producao() {
         ))}
       </div>
 
-      <div className="mt-6">
-        <h2 className="mb-3 text-sm font-bold">Impacto acumulado</h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard
-            destaque
-            label="Total reciclado"
-            valor={`${num(impacto.total, 2)} t`}
-            detalhe="Desde o início da operação"
-          />
-          {impacto.itens.slice(0, 7).map((i) => (
-            <StatCard key={i.nome} label={i.nome} valor={`${num(i.toneladas, 2)} t`} detalhe="Acumulado" />
-          ))}
-        </div>
-      </div>
     </div>
   );
 }
