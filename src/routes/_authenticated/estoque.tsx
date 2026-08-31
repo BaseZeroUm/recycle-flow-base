@@ -17,6 +17,7 @@ import {
 } from "@/lib/dados";
 import { podeFinanceiro, useSessao } from "@/hooks/use-sessao";
 import { TicketPesagem, textoWhatsApp, type DadosTicket } from "@/components/TicketPesagem";
+import { TicketAgrupado, textoWhatsAppAgrupado } from "@/components/TicketAgrupado";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -344,20 +345,20 @@ function Estoque() {
 
   async function compartilhar() {
     if (!dadosTicket) return;
-    const textos = dadosTicket.map(textoWhatsApp).join("\n\n");
+    const texto = textoWhatsAppAgrupado(dadosTicket);
     try {
       const img = await gerarImagem();
       const arquivo = img
         ? new File([img.blob], `ticket-${dadosTicket[0]?.mov.numero_ticket ?? ""}.png`, { type: "image/png" })
         : null;
       if (arquivo && navigator.canShare?.({ files: [arquivo] })) {
-        await navigator.share({ files: [arquivo], text: textos, title: "Tickets de pesagem" });
+        await navigator.share({ files: [arquivo], text: texto, title: "Ticket de pesagem" });
         return;
       }
     } catch {
       /* segue para o fallback */
     }
-    window.open(`https://wa.me/?text=${encodeURIComponent(textos)}`, "_blank", "noopener");
+    window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`, "_blank", "noopener");
   }
 
   const filtrados = useMemo(() => {
@@ -734,24 +735,16 @@ function Estoque() {
       <Dialog open={!!ticketAberto} onOpenChange={(o) => !o && setTicketAberto(null)}>
         <DialogContent className="max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>
-              {ticketAberto && ticketAberto.length > 1
-                ? `${ticketAberto.length} tickets`
-                : `Ticket nº ${ticketAberto?.[0]?.numero_ticket ?? ""}`}
-            </DialogTitle>
+            <DialogTitle>Ticket nº {ticketAberto?.[0]?.numero_ticket ?? ""} gerado</DialogTitle>
           </DialogHeader>
           {dadosTicket && (
-            <div className="flex flex-col gap-4 items-center">
-              {dadosTicket.map((d, i) => (
-                <div key={i} className="flex justify-center">
-                  <TicketPesagem ref={i === 0 ? ticketRef : undefined} dados={d} />
-                </div>
-              ))}
+            <div className="flex justify-center">
+              <TicketAgrupado ref={ticketRef} dados={dadosTicket} />
             </div>
           )}
           <DialogFooter>
             <Button variant="outline" onClick={baixar}>
-              <Download className="h-4 w-4" /> Baixar imagem
+              <Download className="h-4 w-4" /> Baixar PNG
             </Button>
             <Button variant="brand" onClick={compartilhar}>
               <Share2 className="h-4 w-4" /> Enviar por WhatsApp
