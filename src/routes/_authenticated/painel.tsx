@@ -132,6 +132,7 @@ function Painel() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="1">Este mês</SelectItem>
               <SelectItem value="3">Últimos 3 meses</SelectItem>
               <SelectItem value="6">Últimos 6 meses</SelectItem>
               <SelectItem value="12">Últimos 12 meses</SelectItem>

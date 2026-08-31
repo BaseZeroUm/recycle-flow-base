@@ -118,7 +118,7 @@ function Dre() {
     imprimirRelatorio({
       titulo: `${sessao?.empresaNome ?? "Empresa"} — DRE`,
       nomeArquivo: "DRE",
-      subtitulo: `Período: últimos ${meses} mês(es) · emitido em ${new Date().toLocaleString("pt-BR")}`,
+      subtitulo: `Período: ${meses === "1" ? "este mês" : `últimos ${meses} meses`} · emitido em ${new Date().toLocaleString("pt-BR")}`,
       corpo,
     });
   }
@@ -138,7 +138,7 @@ function Dre() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="1">Mês atual</SelectItem>
+                <SelectItem value="1">Este mês</SelectItem>
                 <SelectItem value="3">Últimos 3 meses</SelectItem>
                 <SelectItem value="6">Últimos 6 meses</SelectItem>
                 <SelectItem value="12">Últimos 12 meses</SelectItem>

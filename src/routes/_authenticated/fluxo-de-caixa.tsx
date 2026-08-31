@@ -98,7 +98,7 @@ function Fluxo() {
     imprimirRelatorio({
       titulo: `${sessao?.empresaNome ?? "Empresa"} — Fluxo de caixa`,
       nomeArquivo: "Fluxo-de-caixa",
-      subtitulo: `Base ${base === "pago" ? "realizada" : "prevista"} · últimos ${meses} mês(es) · emitido em ${new Date().toLocaleString("pt-BR")}`,
+      subtitulo: `Base ${base === "pago" ? "realizada" : "prevista"} · ${meses === "1" ? "este mês" : `últimos ${meses} meses`} · emitido em ${new Date().toLocaleString("pt-BR")}`,
       corpo,
     });
   }
@@ -127,6 +127,7 @@ function Fluxo() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="1">Este mês</SelectItem>
                 <SelectItem value="3">Últimos 3 meses</SelectItem>
                 <SelectItem value="6">Últimos 6 meses</SelectItem>
                 <SelectItem value="12">Últimos 12 meses</SelectItem>
