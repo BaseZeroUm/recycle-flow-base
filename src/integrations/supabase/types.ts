@@ -130,6 +130,7 @@ export type Database = {
       }
       empresas: {
         Row: {
+          assinatura_ativa: boolean
           ativa: boolean
           cnpj: string | null
           created_at: string
@@ -139,9 +140,11 @@ export type Database = {
           nome_fantasia: string | null
           razao_social: string
           telefone: string | null
+          trial_ate: string
           updated_at: string
         }
         Insert: {
+          assinatura_ativa?: boolean
           ativa?: boolean
           cnpj?: string | null
           created_at?: string
@@ -151,9 +154,11 @@ export type Database = {
           nome_fantasia?: string | null
           razao_social: string
           telefone?: string | null
+          trial_ate?: string
           updated_at?: string
         }
         Update: {
+          assinatura_ativa?: boolean
           ativa?: boolean
           cnpj?: string | null
           created_at?: string
@@ -163,6 +168,7 @@ export type Database = {
           nome_fantasia?: string | null
           razao_social?: string
           telefone?: string | null
+          trial_ate?: string
           updated_at?: string
         }
         Relationships: []

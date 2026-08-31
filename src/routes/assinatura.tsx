@@ -40,7 +40,7 @@ const WHATSAPP_URL =
   encodeURIComponent("Olá! Quero assinar o Base 01 para minha empresa de reciclagem.");
 
 const incluido = [
-  { icon: Scale, titulo: "Estoque e pesagem", texto: "Bruto, tara e líquido, saldo por material e custo médio." },
+  { icon: Scale, titulo: "Estoque e pesagem", texto: "Registro de peso, saldo por material e custo médio." },
   { icon: Ticket, titulo: "Ticket de pesagem", texto: "Número sequencial, exportação em PNG e envio por WhatsApp." },
   { icon: Boxes, titulo: "Materiais e categorias", texto: "Cadastre os materiais que trabalha, com categorias próprias." },
   { icon: Wallet, titulo: "Financeiro", texto: "Contas a pagar e a receber geradas direto da pesagem." },
