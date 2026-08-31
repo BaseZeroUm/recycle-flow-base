@@ -123,8 +123,8 @@ export const TicketAgrupado = forwardRef<HTMLDivElement, TicketAgrupadoProps>(fu
 });
 
 export function textoWhatsAppAgrupado(dados: DadosTicket[]): string {
-  if (!dados.length) return "";
   const primeiro = dados[0];
+  if (!primeiro) return "";
   const mov = primeiro.mov;
   const entrada = mov.tipo === "entrada";
   const totalGeral = dados.reduce((s, d) => s + Number(d.mov.valor_total), 0);
