@@ -12,9 +12,12 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { ArrowDownRight, ArrowUpRight, Minus } from "lucide-react";
+import { ArrowDownRight, ArrowUpRight, Minus, Printer } from "lucide-react";
 import { PageHeader, StatCard } from "@/components/PageHeader";
 import { brl, monthLabel, num } from "@/lib/format";
+import { imprimirRelatorio } from "@/lib/impressao";
+import { Button } from "@/components/ui/button";
+import { useSessao } from "@/hooks/use-sessao";
 import {
   calcularSaldos,
   useMateriais,

@@ -12,10 +12,13 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { Printer } from "lucide-react";
 import { PageHeader, StatCard } from "@/components/PageHeader";
 import { brl, monthKey, monthLabel } from "@/lib/format";
+import { imprimirRelatorio } from "@/lib/impressao";
 import { useLancamentos } from "@/lib/dados";
 import { podeFinanceiro, useSessao } from "@/hooks/use-sessao";
+import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
