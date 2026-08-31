@@ -12,6 +12,7 @@ import {
   Users,
   Wallet,
   LineChart,
+  Factory,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { LogoFull, LogoIcon } from "@/components/Logo";
@@ -30,6 +31,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
+import { TrialContador } from "@/components/TrialContador";
 
 type Item = { title: string; url: string; icon: typeof Boxes; acesso: "todos" | "financeiro" | "admin" };
 
@@ -40,6 +42,7 @@ const grupos: { label: string; itens: Item[] }[] = [
       { title: "Painel", url: "/painel", icon: LayoutDashboard, acesso: "todos" },
       { title: "Fluxo de caixa", url: "/fluxo-de-caixa", icon: LineChart, acesso: "financeiro" },
       { title: "DRE", url: "/dre", icon: FileSpreadsheet, acesso: "financeiro" },
+      { title: "Produção", url: "/producao", icon: Factory, acesso: "todos" },
     ],
   },
   {
@@ -131,9 +134,12 @@ export function AppShell({ children }: { children: ReactNode }) {
                 </div>
               </div>
             </div>
-            <Button variant="ghost" size="sm" onClick={sair}>
-              <LogOut className="h-4 w-4" /> Sair
-            </Button>
+            <div className="flex items-center gap-2">
+              <TrialContador />
+              <Button variant="ghost" size="sm" onClick={sair}>
+                <LogOut className="h-4 w-4" /> Sair
+              </Button>
+            </div>
           </header>
           <main className="flex-1 p-4 md:p-8">{children}</main>
         </div>
