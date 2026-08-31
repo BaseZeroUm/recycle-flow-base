@@ -60,25 +60,54 @@ function Financeiro() {
   const criar = useMutation({
     mutationFn: async () => {
       if (!sessao) throw new Error("Sessão inválida");
-      const { error } = await supabase.from("lancamentos").insert({
-        empresa_id: sessao.empresaId,
-        tipo,
-        descricao,
-        valor: Number(valor),
-        categoria_id: tipo === "despesa" ? categoriaId || null : null,
-        data_vencimento: vencimento,
-        imposto: imposto === "sim",
-        status: "pendente",
-        criado_por: sessao.userId,
-      });
+      const valorNum = Number(valor);
+      if (!Number.isFinite(valorNum) || valorNum <= 0) throw new Error("Informe um valor válido");
+      const comCaixa = tipo === "despesa" && pagarComCaixa === "sim";
+      if (comCaixa && !caixaAberto) {
+        throw new Error("Abra o caixa do dia na página Caixa antes de pagar em dinheiro");
+      }
+      const hoje = new Date().toISOString().slice(0, 10);
+
+      const { data: lanc, error } = await supabase
+        .from("lancamentos")
+        .insert({
+          empresa_id: sessao.empresaId,
+          tipo,
+          descricao,
+          valor: valorNum,
+          categoria_id: tipo === "despesa" ? categoriaId || null : null,
+          data_vencimento: vencimento,
+          data_pagamento: comCaixa ? hoje : null,
+          forma_pagamento: comCaixa ? "Caixa (dinheiro)" : null,
+          imposto: imposto === "sim",
+          status: comCaixa ? "pago" : "pendente",
+          criado_por: sessao.userId,
+        })
+        .select("id")
+        .single();
       if (error) throw error;
+
+      if (comCaixa) {
+        const { error: erroCaixa } = await supabase.from("caixa_movimentos").insert({
+          empresa_id: sessao.empresaId,
+          data: hoje,
+          tipo: "despesa",
+          valor: valorNum,
+          descricao: `Despesa paga com caixa · ${descricao}`,
+          lancamento_id: lanc.id,
+          criado_por: sessao.userId,
+        });
+        if (erroCaixa) throw erroCaixa;
+      }
     },
     onSuccess: () => {
       toast.success("Lançamento criado");
       queryClient.invalidateQueries({ queryKey: ["lancamentos"] });
+      queryClient.invalidateQueries({ queryKey: ["caixa_movimentos"] });
       setAberto(false);
       setDescricao("");
       setValor("");
+      setPagarComCaixa("nao");
     },
     onError: (e: Error) => toast.error("Erro ao salvar", { description: e.message }),
   });
