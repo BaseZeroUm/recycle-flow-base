@@ -339,6 +339,46 @@ function Estoque() {
     setTicketAberto(irmaos.length > 0 ? irmaos : [m]);
   }
 
+  // Exclui o ticket inteiro: lançamentos financeiros, débito de caixa,
+  // movimentações e o próprio ticket agrupador.
+  const excluirTicket = useMutation({
+    mutationFn: async (m: Movimentacao) => {
+      const irmaos = m.ticket_id ? movs.filter((x) => x.ticket_id === m.ticket_id) : [m];
+      const movIds = irmaos.map((x) => x.id);
+
+      const { error: erroLanc } = await supabase.from("lancamentos").delete().in("movimentacao_id", movIds);
+      if (erroLanc) throw erroLanc;
+
+      if (m.ticket_id) {
+        const { error: erroCaixa } = await supabase.from("caixa_movimentos").delete().eq("ticket_id", m.ticket_id);
+        if (erroCaixa) throw erroCaixa;
+      }
+
+      const { error: erroMov } = await supabase.from("movimentacoes_estoque").delete().in("id", movIds);
+      if (erroMov) throw erroMov;
+
+      if (m.ticket_id) {
+        const { error: erroTicket } = await supabase.from("tickets").delete().eq("id", m.ticket_id);
+        if (erroTicket) throw erroTicket;
+      }
+    },
+    onSuccess: () => {
+      toast.success("Ticket excluído");
+      queryClient.invalidateQueries({ queryKey: ["movimentacoes"] });
+      queryClient.invalidateQueries({ queryKey: ["lancamentos"] });
+      queryClient.invalidateQueries({ queryKey: ["caixa_movimentos"] });
+      setTicketAberto(null);
+    },
+    onError: (e: Error) => toast.error("Erro ao excluir", { description: e.message }),
+  });
+
+  function confirmarExclusao(m: Movimentacao) {
+    const rotulo = m.numero_ticket ? `ticket nº ${m.numero_ticket}` : "esta movimentação";
+    if (window.confirm(`Excluir o ${rotulo}? Os lançamentos financeiros e o débito de caixa vinculados também serão removidos. Essa ação não pode ser desfeita.`)) {
+      excluirTicket.mutate(m);
+    }
+  }
+
   function nomeParceiro(m: Movimentacao) {
     const id = m.tipo === "entrada" ? m.fornecedor_id : m.cliente_id;
     const lista = m.tipo === "entrada" ? fornecedores : clientes;
