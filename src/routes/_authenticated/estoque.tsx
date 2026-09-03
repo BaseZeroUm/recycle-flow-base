@@ -803,9 +803,21 @@ function Estoque() {
                     <TableCell className="text-right">{num(m.quantidade)}</TableCell>
                     <TableCell className="text-right">{brl(m.valor_total)}</TableCell>
                     <TableCell className="text-right">
-                      <Button size="sm" variant="ghost" onClick={() => abrirTicket(m)}>
-                        <TicketIcon className="h-4 w-4" /> Ticket
-                      </Button>
+                      <div className="flex items-center justify-end gap-1">
+                        <Button size="sm" variant="ghost" onClick={() => abrirTicket(m)}>
+                          <TicketIcon className="h-4 w-4" /> Ticket
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                          onClick={() => confirmarExclusao(m)}
+                          disabled={excluirTicket.isPending}
+                          aria-label="Excluir ticket"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
