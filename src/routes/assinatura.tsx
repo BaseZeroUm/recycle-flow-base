@@ -55,9 +55,9 @@ function Assinatura() {
   return (
     <div className="min-h-screen bg-background">
       <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
-        <Link to="/">
+        <a href="https://basezeroum.com.br" title="Ir para o site oficial Base 01">
           <LogoFull />
-        </Link>
+        </a>
         <Button asChild size="sm" variant="outline">
           <Link to="/auth">Entrar</Link>
         </Button>
