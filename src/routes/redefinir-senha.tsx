@@ -26,15 +26,21 @@ function Redefinir() {
 
   async function salvar(e: React.FormEvent) {
     e.preventDefault();
-    setLoading(true);
-    const { error } = await supabase.auth.updateUser({ password: senha });
-    setLoading(false);
-    if (error) {
-      toast.error("Não foi possível alterar", { description: error.message });
-      return;
+    if (loading) return;
+    try {
+      setLoading(true);
+      const { error } = await supabase.auth.updateUser({ password: senha });
+      if (error) {
+        toast.error("Não foi possível alterar", { description: error.message });
+        return;
+      }
+      toast.success("Senha atualizada");
+      navigate({ to: "/painel", replace: true });
+    } catch (err: any) {
+      toast.error("Não foi possível alterar", { description: err?.message });
+    } finally {
+      setLoading(false);
     }
-    toast.success("Senha atualizada");
-    navigate({ to: "/painel", replace: true });
   }
 
   return (
@@ -54,7 +60,7 @@ function Redefinir() {
           />
         </div>
         <Button type="submit" variant="brand" className="w-full" disabled={loading}>
-          Salvar nova senha
+          {loading ? "Salvando..." : "Salvar nova senha"}
         </Button>
       </form>
     </div>

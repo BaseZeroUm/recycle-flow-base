@@ -326,8 +326,12 @@ function Financeiro() {
                 )}
               </div>
               <DialogFooter>
-                <Button variant="brand" onClick={() => criar.mutate()} disabled={criar.isPending}>
-                  Salvar
+                <Button
+                  variant="brand"
+                  onClick={() => !criar.isPending && criar.mutate()}
+                  disabled={criar.isPending}
+                >
+                  {criar.isPending ? "Salvando..." : "Salvar"}
                 </Button>
               </DialogFooter>
             </DialogContent>

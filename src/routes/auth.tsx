@@ -34,77 +34,105 @@ function AuthPage() {
 
   async function entrar(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (loading) return;
     const f = new FormData(e.currentTarget);
-    setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({
-      email: String(f.get("email")),
-      password: String(f.get("senha")),
-    });
-    setLoading(false);
-    if (error) {
-      toast.error("Não foi possível entrar", { description: error.message });
-      return;
+    try {
+      setLoading(true);
+      const { error } = await supabase.auth.signInWithPassword({
+        email: String(f.get("email")),
+        password: String(f.get("senha")),
+      });
+      if (error) {
+        toast.error("Não foi possível entrar", { description: error.message });
+        return;
+      }
+      navigate({ to: "/painel", replace: true });
+    } catch (err: any) {
+      toast.error("Não foi possível entrar", { description: err?.message });
+    } finally {
+      setLoading(false);
     }
-    navigate({ to: "/painel", replace: true });
   }
 
   async function cadastrar(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (loading) return;
     const f = new FormData(e.currentTarget);
-    setLoading(true);
-    const { data, error } = await supabase.auth.signUp({
-      email: String(f.get("email")),
-      password: String(f.get("senha")),
-      options: {
-        emailRedirectTo: window.location.origin,
-        data: {
-          nome: String(f.get("nome")),
-          empresa_nome: String(f.get("empresa")),
-          empresa_cnpj: String(f.get("cnpj") ?? ""),
-          telefone: String(f.get("telefone") ?? ""),
+    try {
+      setLoading(true);
+      const { data, error } = await supabase.auth.signUp({
+        email: String(f.get("email")),
+        password: String(f.get("senha")),
+        options: {
+          emailRedirectTo: window.location.origin,
+          data: {
+            nome: String(f.get("nome")),
+            empresa_nome: String(f.get("empresa")),
+            empresa_cnpj: String(f.get("cnpj") ?? ""),
+            telefone: String(f.get("telefone") ?? ""),
+          },
         },
-      },
-    });
-    setLoading(false);
-    if (error) {
-      toast.error("Não foi possível criar a conta", { description: error.message });
-      return;
-    }
-    if (data.session) {
-      navigate({ to: "/painel", replace: true });
-    } else {
-      toast.success("Conta criada", {
-        description: "Confirme o e-mail que enviamos para ativar o acesso.",
       });
-      setModo("entrar");
+      if (error) {
+        toast.error("Não foi possível criar a conta", { description: error.message });
+        return;
+      }
+      if (data.session) {
+        navigate({ to: "/painel", replace: true });
+      } else {
+        toast.success("Conta criada", {
+          description: "Confirme o e-mail que enviamos para ativar o acesso.",
+        });
+        setModo("entrar");
+      }
+    } catch (err: any) {
+      toast.error("Não foi possível criar a conta", { description: err?.message });
+    } finally {
+      setLoading(false);
     }
   }
 
   async function google() {
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
-    });
-    if (result.error) {
+    if (loading) return;
+    try {
+      setLoading(true);
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin,
+      });
+      if (result.error) {
+        toast.error("Falha no login com Google");
+        return;
+      }
+      if (result.redirected) return;
+      navigate({ to: "/painel", replace: true });
+    } catch (err: any) {
       toast.error("Falha no login com Google");
-      return;
+    } finally {
+      setLoading(false);
     }
-    if (result.redirected) return;
-    navigate({ to: "/painel", replace: true });
   }
 
   async function recuperar(email: string) {
+    if (loading) return;
     if (!email) {
       toast.error("Informe o e-mail para recuperar a senha");
       return;
     }
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/redefinir-senha`,
-    });
-    if (error) {
-      toast.error(error.message);
-      return;
+    try {
+      setLoading(true);
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/redefinir-senha`,
+      });
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+      toast.success("Enviamos um link de redefinição para o seu e-mail.");
+    } catch (err: any) {
+      toast.error("Erro ao solicitar recuperação", { description: err?.message });
+    } finally {
+      setLoading(false);
     }
-    toast.success("Enviamos um link de redefinição para o seu e-mail.");
   }
 
   return (
@@ -142,14 +170,15 @@ function AuthPage() {
                 </Button>
                 <button
                   type="button"
-                  className="w-full text-xs text-muted-foreground hover:text-foreground"
+                  disabled={loading}
+                  className="w-full text-xs text-muted-foreground hover:text-foreground disabled:pointer-events-none disabled:opacity-50"
                   onClick={() =>
                     recuperar(
                       (document.getElementById("email") as HTMLInputElement | null)?.value ?? "",
                     )
                   }
                 >
-                  Esqueci minha senha
+                  {loading ? "Enviando link..." : "Esqueci minha senha"}
                 </button>
               </form>
             </TabsContent>
@@ -199,8 +228,8 @@ function AuthPage() {
           <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground">
             <span className="h-px flex-1 bg-border" /> ou <span className="h-px flex-1 bg-border" />
           </div>
-          <Button variant="outline" className="w-full" onClick={google}>
-            Continuar com Google
+          <Button variant="outline" className="w-full" onClick={google} disabled={loading}>
+            {loading ? "Conectando..." : "Continuar com Google"}
           </Button>
         </div>
       </div>

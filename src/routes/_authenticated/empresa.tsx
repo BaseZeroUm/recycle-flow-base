@@ -105,8 +105,12 @@ function Empresa() {
         </div>
         {campo("E-mail", "email", "email")}
         {campo("Endereço", "endereco")}
-        <Button variant="brand" onClick={() => salvar.mutate()} disabled={salvar.isPending}>
-          Salvar alterações
+        <Button
+          variant="brand"
+          onClick={() => !salvar.isPending && salvar.mutate()}
+          disabled={salvar.isPending}
+        >
+          {salvar.isPending ? "Salvando..." : "Salvar alterações"}
         </Button>
       </div>
     </div>

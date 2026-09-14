@@ -113,10 +113,15 @@ function CategoriasMaterial() {
             placeholder="Nova categoria (ex.: Plástico)"
             value={nome}
             onChange={(e) => setNome(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && criar.mutate()}
+            onKeyDown={(e) => e.key === "Enter" && !criar.isPending && criar.mutate()}
           />
-          <Button variant="brand" size="sm" onClick={() => criar.mutate()} disabled={criar.isPending}>
-            <Plus className="h-4 w-4" /> Adicionar
+          <Button
+            variant="brand"
+            size="sm"
+            onClick={() => !criar.isPending && criar.mutate()}
+            disabled={criar.isPending}
+          >
+            <Plus className="h-4 w-4" /> {criar.isPending ? "Adicionando..." : "Adicionar"}
           </Button>
         </div>
       }
@@ -262,8 +267,12 @@ function Materiais() {
               </div>
             </div>
             <DialogFooter>
-              <Button variant="brand" onClick={() => criar.mutate()} disabled={criar.isPending}>
-                Salvar
+              <Button
+                variant="brand"
+                onClick={() => !criar.isPending && criar.mutate()}
+                disabled={criar.isPending}
+              >
+                {criar.isPending ? "Salvando..." : "Salvar"}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -382,8 +391,12 @@ function Parceiros({ tabela, titulo }: { tabela: "fornecedores" | "clientes"; ti
               </div>
             </div>
             <DialogFooter>
-              <Button variant="brand" onClick={() => criar.mutate()} disabled={criar.isPending}>
-                Salvar
+              <Button
+                variant="brand"
+                onClick={() => !criar.isPending && criar.mutate()}
+                disabled={criar.isPending}
+              >
+                {criar.isPending ? "Salvando..." : "Salvar"}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -484,8 +497,12 @@ function Categorias() {
               </div>
             </div>
             <DialogFooter>
-              <Button variant="brand" onClick={() => criar.mutate()} disabled={criar.isPending}>
-                Salvar
+              <Button
+                variant="brand"
+                onClick={() => !criar.isPending && criar.mutate()}
+                disabled={criar.isPending}
+              >
+                {criar.isPending ? "Salvando..." : "Salvar"}
               </Button>
             </DialogFooter>
           </DialogContent>

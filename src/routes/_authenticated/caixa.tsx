@@ -109,6 +109,7 @@ function Caixa() {
   });
 
   async function confirmarAbertura() {
+    if (registrar.isPending) return;
     const valor = Number(saldoAbertura);
     if (!Number.isFinite(valor) || valor < 0) {
       toast.error("Informe um saldo válido");
@@ -124,6 +125,7 @@ function Caixa() {
   }
 
   async function confirmarSangria() {
+    if (registrar.isPending) return;
     const valor = Number(sangriaValor);
     if (!Number.isFinite(valor) || valor <= 0) {
       toast.error("Informe um valor válido");
@@ -145,6 +147,7 @@ function Caixa() {
   }
 
   async function confirmarConferencia() {
+    if (registrar.isPending) return;
     const valor = Number(contado);
     if (!Number.isFinite(valor) || valor < 0) {
       toast.error("Informe o valor contado");
@@ -259,7 +262,7 @@ function Caixa() {
                 </div>
                 <DialogFooter>
                   <Button variant="brand" onClick={confirmarSangria} disabled={registrar.isPending}>
-                    Registrar
+                    {registrar.isPending ? "Registrando..." : "Registrar"}
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -296,7 +299,7 @@ function Caixa() {
                 </div>
                 <DialogFooter>
                   <Button variant="brand" onClick={confirmarConferencia} disabled={registrar.isPending}>
-                    Registrar conferência
+                    {registrar.isPending ? "Registrando..." : "Registrar conferência"}
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -329,7 +332,7 @@ function Caixa() {
                 </div>
                 <DialogFooter>
                   <Button variant="brand" onClick={confirmarAbertura} disabled={registrar.isPending}>
-                    Confirmar abertura
+                    {registrar.isPending ? "Confirmando..." : "Confirmar abertura"}
                   </Button>
                 </DialogFooter>
               </DialogContent>

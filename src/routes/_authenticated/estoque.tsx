@@ -726,8 +726,16 @@ function Estoque() {
                 </div>
               </div>
               <DialogFooter>
-                <Button variant="brand" onClick={() => salvar.mutate()} disabled={salvar.isPending}>
-                  {itens.length > 1 ? `Registrar ${itens.length} itens num ticket` : "Registrar e emitir ticket"}
+                <Button
+                  variant="brand"
+                  onClick={() => !salvar.isPending && salvar.mutate()}
+                  disabled={salvar.isPending}
+                >
+                  {salvar.isPending
+                    ? "Registrando..."
+                    : itens.length > 1
+                      ? `Registrar ${itens.length} itens num ticket`
+                      : "Registrar e emitir ticket"}
                 </Button>
               </DialogFooter>
             </DialogContent>
