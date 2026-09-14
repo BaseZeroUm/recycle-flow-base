@@ -121,7 +121,7 @@ function AuthPage() {
     try {
       setLoading(true);
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/redefinir-senha`,
+        redirectTo: "https://reciclagem.basezeroum.com.br/redefinir-senha",
       });
       if (error) {
         toast.error(error.message);
