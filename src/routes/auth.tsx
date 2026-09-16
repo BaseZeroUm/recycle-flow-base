@@ -28,6 +28,14 @@ function AuthPage() {
   const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      const hash = window.location.hash || "";
+      const search = window.location.search || "";
+      if (hash.includes("type=recovery") || search.includes("type=recovery")) {
+        navigate({ to: "/redefinir-senha", replace: true });
+        return;
+      }
+    }
     supabase.auth.getSession().then(({ data }) => {
       if (data.session) navigate({ to: "/painel", replace: true });
     });
@@ -122,7 +130,7 @@ function AuthPage() {
     try {
       setLoading(true);
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: "https://reciclagem.basezeroum.com.br/redefinir-senha",
+        redirectTo: `${window.location.origin}/redefinir-senha`,
       });
       if (error) {
         toast.error(error.message);
