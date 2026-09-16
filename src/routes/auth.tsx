@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
+import { Eye, EyeOff } from "lucide-react";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
@@ -25,6 +25,7 @@ function AuthPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [modo, setModo] = useState("entrar");
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -157,13 +158,23 @@ function AuthPage() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="senha">Senha</Label>
-                  <Input
-                    id="senha"
-                    name="senha"
-                    type="password"
-                    required
-                    autoComplete="current-password"
-                  />
+                  <div className="relative">
+                    <Input
+                      id="senha"
+                      name="senha"
+                      type={showPassword ? "text" : "password"}
+                      required
+                      autoComplete="current-password"
+                      className="pr-10"
+                    />
+                    <button
+                      type="button"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
                 </div>
                 <Button type="submit" variant="brand" className="w-full" disabled={loading}>
                   {loading ? "Entrando..." : "Entrar"}
@@ -209,14 +220,24 @@ function AuthPage() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="senha-cad">Senha</Label>
-                  <Input
-                    id="senha-cad"
-                    name="senha"
-                    type="password"
-                    required
-                    minLength={6}
-                    autoComplete="new-password"
-                  />
+                  <div className="relative">
+                    <Input
+                      id="senha-cad"
+                      name="senha"
+                      type={showPassword ? "text" : "password"}
+                      required
+                      minLength={6}
+                      autoComplete="new-password"
+                      className="pr-10"
+                    />
+                    <button
+                      type="button"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
                 </div>
                 <Button type="submit" variant="brand" className="w-full" disabled={loading}>
                   {loading ? "Criando..." : "Criar conta da empresa"}
