@@ -15,6 +15,7 @@ import { Route as AssinaturaRouteImport } from './routes/assinatura'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as RedefinirSenhaRouteImport } from './routes/redefinir-senha'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as TrialExpiradoRouteImport } from './routes/trial-expirado'
 import { Route as AuthenticatedCadastrosRouteImport } from './routes/_authenticated/cadastros'
 import { Route as AuthenticatedCaixaRouteImport } from './routes/_authenticated/caixa'
 import { Route as AuthenticatedDreRouteImport } from './routes/_authenticated/dre'
@@ -53,6 +54,11 @@ const RedefinirSenhaRoute = RedefinirSenhaRouteImport.update({
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TrialExpiradoRoute = TrialExpiradoRouteImport.update({
+  id: '/trial-expirado',
+  path: '/trial-expirado',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedCadastrosRoute = AuthenticatedCadastrosRouteImport.update({
@@ -113,6 +119,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/trial-expirado': typeof TrialExpiradoRoute
   '/cadastros': typeof AuthenticatedCadastrosRoute
   '/caixa': typeof AuthenticatedCaixaRoute
   '/dre': typeof AuthenticatedDreRoute
@@ -130,6 +137,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/trial-expirado': typeof TrialExpiradoRoute
   '/cadastros': typeof AuthenticatedCadastrosRoute
   '/caixa': typeof AuthenticatedCaixaRoute
   '/dre': typeof AuthenticatedDreRoute
@@ -149,6 +157,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/trial-expirado': typeof TrialExpiradoRoute
   '/_authenticated/cadastros': typeof AuthenticatedCadastrosRoute
   '/_authenticated/caixa': typeof AuthenticatedCaixaRoute
   '/_authenticated/dre': typeof AuthenticatedDreRoute
@@ -168,6 +177,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/redefinir-senha'
     | '/sitemap.xml'
+    | '/trial-expirado'
     | '/cadastros'
     | '/caixa'
     | '/dre'
@@ -185,6 +195,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/redefinir-senha'
     | '/sitemap.xml'
+    | '/trial-expirado'
     | '/cadastros'
     | '/caixa'
     | '/dre'
@@ -203,6 +214,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/redefinir-senha'
     | '/sitemap.xml'
+    | '/trial-expirado'
     | '/_authenticated/cadastros'
     | '/_authenticated/caixa'
     | '/_authenticated/dre'
@@ -222,6 +234,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   RedefinirSenhaRoute: typeof RedefinirSenhaRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  TrialExpiradoRoute: typeof TrialExpiradoRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -266,6 +279,13 @@ declare module '@tanstack/react-router' {
       path: '/sitemap.xml'
       fullPath: '/sitemap.xml'
       preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/trial-expirado': {
+      id: '/trial-expirado'
+      path: '/trial-expirado'
+      fullPath: '/trial-expirado'
+      preLoaderRoute: typeof TrialExpiradoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/cadastros': {
@@ -377,6 +397,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   RedefinirSenhaRoute: RedefinirSenhaRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  TrialExpiradoRoute: TrialExpiradoRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

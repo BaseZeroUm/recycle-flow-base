@@ -3,6 +3,143 @@ import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 import { brokeredPreviewStorage } from './previewAuthStorage';
 
+// Verifica se está em produção no domínio da Base Zero Um para aplicar o cookie compartilhado
+const isProductionDomain =
+  typeof window !== 'undefined' &&
+  (window.location.hostname.endsWith('basezeroum.com.br') ||
+    window.location.hostname === 'basezeroum.com.br');
+
+export const cookieOptions = {
+  domain: isProductionDomain ? '.basezeroum.com.br' : undefined,
+  sameSite: 'lax' as const,
+  secure: isProductionDomain,
+};
+
+function getCookie(name: string): string | null {
+  if (typeof document === 'undefined') return null;
+  const nameEQ = `${encodeURIComponent(name)}=`;
+  const ca = document.cookie.split(';');
+  for (let i = 0; i < ca.length; i++) {
+    let c = ca[i];
+    if (!c) continue;
+    while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+    if (c.indexOf(nameEQ) === 0) {
+      return decodeURIComponent(c.substring(nameEQ.length, c.length));
+    }
+  }
+  return null;
+}
+
+function setCookie(name: string, value: string) {
+  if (typeof document === 'undefined') return;
+  const domainPart = cookieOptions.domain ? `; domain=${cookieOptions.domain}` : '';
+  const securePart = cookieOptions.secure ? '; Secure' : '';
+  document.cookie = `${encodeURIComponent(name)}=${encodeURIComponent(value)}${domainPart}; path=/; max-age=31536000; SameSite=${cookieOptions.sameSite}${securePart}`;
+}
+
+function deleteCookie(name: string) {
+  if (typeof document === 'undefined') return;
+  const domainPart = cookieOptions.domain ? `; domain=${cookieOptions.domain}` : '';
+  document.cookie = `${encodeURIComponent(name)}=; domain=${cookieOptions.domain || ''}; path=/; max-age=0; SameSite=${cookieOptions.sameSite}`;
+  if (cookieOptions.domain) {
+    document.cookie = `${encodeURIComponent(name)}=; path=/; max-age=0; SameSite=${cookieOptions.sameSite}`;
+  }
+}
+
+function setCookieValue(name: string, value: string) {
+  const encoded = encodeURIComponent(value);
+  const CHUNK_SIZE = 3000;
+  if (encoded.length <= CHUNK_SIZE) {
+    setCookie(name, value);
+    let i = 0;
+    while (getCookie(`${name}.${i}`) !== null) {
+      deleteCookie(`${name}.${i}`);
+      i++;
+    }
+    return;
+  }
+
+  deleteCookie(name);
+  let chunkIdx = 0;
+  for (let offset = 0; offset < encoded.length; offset += CHUNK_SIZE) {
+    const chunkVal = decodeURIComponent(encoded.slice(offset, offset + CHUNK_SIZE));
+    setCookie(`${name}.${chunkIdx}`, chunkVal);
+    chunkIdx++;
+  }
+  while (getCookie(`${name}.${chunkIdx}`) !== null) {
+    deleteCookie(`${name}.${chunkIdx}`);
+    chunkIdx++;
+  }
+}
+
+function getCookieValue(name: string): string | null {
+  const single = getCookie(name);
+  if (single !== null) return single;
+
+  let chunkIdx = 0;
+  let fullEncoded = '';
+  while (true) {
+    const chunk = getCookie(`${name}.${chunkIdx}`);
+    if (chunk === null) break;
+    fullEncoded += encodeURIComponent(chunk);
+    chunkIdx++;
+  }
+  if (chunkIdx > 0) {
+    return decodeURIComponent(fullEncoded);
+  }
+  return null;
+}
+
+function removeCookieValue(name: string) {
+  deleteCookie(name);
+  let i = 0;
+  while (getCookie(`${name}.${i}`) !== null) {
+    deleteCookie(`${name}.${i}`);
+    i++;
+  }
+}
+
+const sharedAuthStorage = {
+  getItem: (key: string): string | null => {
+    const cookieVal = getCookieValue(key);
+    if (cookieVal) return cookieVal;
+    try {
+      return typeof localStorage !== 'undefined' ? localStorage.getItem(key) : null;
+    } catch {
+      return null;
+    }
+  },
+  setItem: (key: string, value: string): void => {
+    setCookieValue(key, value);
+    try {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem(key, value);
+      }
+    } catch {
+      // Ignora erro de quota
+    }
+  },
+  removeItem: (key: string): void => {
+    removeCookieValue(key);
+    try {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.removeItem(key);
+      }
+    } catch {
+      // Ignora
+    }
+  },
+};
+
+function getAuthStorage() {
+  if (typeof window === 'undefined') return undefined;
+  const preview = brokeredPreviewStorage();
+  if (preview && preview !== localStorage) {
+    return preview;
+  }
+  return sharedAuthStorage;
+}
+
 function isNewSupabaseApiKey(value: string): boolean {
   return value.startsWith('sb_publishable_') || value.startsWith('sb_secret_');
 }
@@ -27,7 +164,6 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
   };
 }
 
-
 function createSupabaseClient() {
   // Use import.meta.env for client-side (Vite build-time replacement)
   // Fall back to process.env for SSR (server-side rendering)
@@ -37,13 +173,15 @@ function createSupabaseClient() {
     process.env['NEXT_PUBLIC_SUPABASE_URL'];
   const SUPABASE_PUBLISHABLE_KEY =
     import.meta.env['VITE_SUPABASE_PUBLISHABLE_KEY'] ||
+    import.meta.env['VITE_SUPABASE_ANON_KEY'] ||
     process.env['SUPABASE_PUBLISHABLE_KEY'] ||
+    process.env['SUPABASE_ANON_KEY'] ||
     process.env['NEXT_PUBLIC_SUPABASE_ANON_KEY'];
 
   if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
     const missing = [
-      ...(!SUPABASE_URL ? ['SUPABASE_URL'] : []),
-      ...(!SUPABASE_PUBLISHABLE_KEY ? ['SUPABASE_PUBLISHABLE_KEY'] : []),
+      ...(!SUPABASE_URL ? ['SUPABASE_URL / VITE_SUPABASE_URL'] : []),
+      ...(!SUPABASE_PUBLISHABLE_KEY ? ['SUPABASE_PUBLISHABLE_KEY / VITE_SUPABASE_PUBLISHABLE_KEY'] : []),
     ];
     const message = `Missing Supabase environment variable(s): ${missing.join(', ')}. Connect Supabase in Lovable Cloud.`;
     console.error(`[Supabase] ${message}`);
@@ -55,10 +193,11 @@ function createSupabaseClient() {
       fetch: createSupabaseFetch(SUPABASE_PUBLISHABLE_KEY),
     },
     auth: {
-      storage: brokeredPreviewStorage(),
+      storageKey: 'b01-session-token',
+      storage: getAuthStorage(),
       persistSession: true,
-      autoRefreshToken: false,
-    }
+      autoRefreshToken: true,
+    },
   });
 }
 
@@ -72,4 +211,3 @@ export const supabase = new Proxy({} as ReturnType<typeof createSupabaseClient>,
     return Reflect.get(_supabase, prop, receiver);
   },
 });
-

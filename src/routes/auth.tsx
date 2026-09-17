@@ -47,15 +47,107 @@ function AuthPage() {
     const f = new FormData(e.currentTarget);
     try {
       setLoading(true);
-      const { error } = await supabase.auth.signInWithPassword({
-        email: String(f.get("email")),
-        password: String(f.get("senha")),
+      const email = String(f.get("email"));
+      const password = String(f.get("senha"));
+
+      // 1. Executa o login normalmente
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       });
-      if (error) {
-        toast.error("Não foi possível entrar", { description: error.message });
-        return;
+
+      if (authError) throw authError;
+
+      if (authData?.user) {
+        // 2. Busca dados de perfil, status LGPD e dados da empresa (trial, categoria e plano)
+        let profileResult = await (supabase.from("profiles") as any)
+          .select(`
+            id,
+            ativo,
+            desativado_em,
+            empresa:empresas (
+              id,
+              ativa,
+              categoria,
+              plano,
+              trial_ate,
+              assinatura_ativa
+            )
+          `)
+          .eq("id", authData.user.id)
+          .single();
+
+        let profile = profileResult.data;
+
+        if (profileResult.error || !profile) {
+          // Fallback resiliente se novas colunas ainda não estiverem migradas no banco
+          const fallback = await (supabase.from("profiles") as any)
+            .select(`
+              id,
+              ativo,
+              empresa:empresas (
+                id,
+                ativa,
+                trial_ate,
+                assinatura_ativa
+              )
+            `)
+            .eq("id", authData.user.id)
+            .single();
+
+          if (fallback.error || !fallback.data) {
+            throw new Error("Não foi possível carregar os dados da sua conta.");
+          }
+          profile = fallback.data;
+        }
+
+        // 3. Validação LGPD (Soft-delete)
+        if (!profile.ativo || profile.desativado_em) {
+          await supabase.auth.signOut();
+          throw new Error("Esta conta foi desativada temporariamente. Entre em contato com o suporte.");
+        }
+
+        const empresa: any = Array.isArray(profile.empresa) ? profile.empresa[0] : profile.empresa;
+
+        if (!empresa || !empresa.ativa) {
+          await supabase.auth.signOut();
+          throw new Error("A empresa vinculada a este usuário está suspensa.");
+        }
+
+        // 4. Validação de Trial Expirado
+        const dataLimite = new Date(empresa.trial_ate);
+        const hoje = new Date();
+        const isTrialVencido = dataLimite < hoje && !empresa.assinatura_ativa;
+
+        if (isTrialVencido) {
+          // Redireciona para a tela de bloqueio/escolha de plano
+          navigate({ to: "/trial-expirado", replace: true });
+          return;
+        }
+
+        // 5. Roteamento Inteligente por Segmento
+        switch (empresa.categoria) {
+          case "reciclagem":
+            navigate({ to: "/painel", replace: true });
+            break;
+
+          case "adega":
+            window.location.href = "https://adega.basezeroum.com.br";
+            break;
+
+          case "admin":
+            window.location.href = "https://admin.basezeroum.com.br";
+            break;
+
+          case "multi":
+            navigate({ to: "/selecao-modulo" as any, replace: true });
+            break;
+
+          default:
+            navigate({ to: "/painel", replace: true });
+            break;
+        }
       }
-      navigate({ to: "/painel", replace: true });
     } catch (err: any) {
       toast.error("Não foi possível entrar", { description: err?.message });
     } finally {
@@ -69,25 +161,43 @@ function AuthPage() {
     const f = new FormData(e.currentTarget);
     try {
       setLoading(true);
+      const email = String(f.get("email"));
+      const password = String(f.get("senha"));
+      const nome = String(f.get("nome"));
+      const nomeEmpresa = String(f.get("empresa"));
+      const cnpj = String(f.get("cnpj") ?? "");
+      const telefone = String(f.get("telefone") ?? "");
+      const segmento = String(f.get("categoria") ?? "reciclagem");
+
       const { data, error } = await supabase.auth.signUp({
-        email: String(f.get("email")),
-        password: String(f.get("senha")),
+        email,
+        password,
         options: {
           emailRedirectTo: window.location.origin,
           data: {
-            nome: String(f.get("nome")),
-            empresa_nome: String(f.get("empresa")),
-            empresa_cnpj: String(f.get("cnpj") ?? ""),
-            telefone: String(f.get("telefone") ?? ""),
+            nome,
+            empresa_nome: nomeEmpresa,
+            empresa_cnpj: cnpj,
+            telefone,
+            categoria: segmento, // 'reciclagem' ou 'adega'
           },
         },
       });
+
       if (error) {
         toast.error("Não foi possível criar a conta", { description: error.message });
         return;
       }
+
+      // Redirecionamento pós-cadastro imediato
       if (data.session) {
-        navigate({ to: "/painel", replace: true });
+        if (segmento === "reciclagem") {
+          navigate({ to: "/painel", replace: true });
+        } else if (segmento === "adega") {
+          window.location.href = "https://adega.basezeroum.com.br";
+        } else {
+          navigate({ to: "/painel", replace: true });
+        }
       } else {
         toast.success("Conta criada", {
           description: "Confirme o e-mail que enviamos para ativar o acesso.",
@@ -204,6 +314,18 @@ function AuthPage() {
 
             <TabsContent value="cadastrar" className="mt-6">
               <form onSubmit={cadastrar} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="categoria">Segmento</Label>
+                  <select
+                    id="categoria"
+                    name="categoria"
+                    defaultValue="reciclagem"
+                    className="flex h-10 w-full rounded-md border border-input bg-card px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <option value="reciclagem">Reciclagem</option>
+                    <option value="adega">Adega / Bebidas</option>
+                  </select>
+                </div>
                 <div className="space-y-2">
                   <Label htmlFor="empresa">Nome da empresa</Label>
                   <Input id="empresa" name="empresa" required />
