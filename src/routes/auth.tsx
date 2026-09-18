@@ -9,6 +9,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Eye, EyeOff } from "lucide-react";
+import { validatePassword } from "@/lib/password-validator";
+import { PasswordRequirements } from "@/components/PasswordRequirements";
+
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
@@ -26,6 +29,12 @@ function AuthPage() {
   const [loading, setLoading] = useState(false);
   const [modo, setModo] = useState("entrar");
   const [showPassword, setShowPassword] = useState(false);
+
+  // Estados dos campos de senha na aba cadastrar
+  const [cadSenha, setCadSenha] = useState("");
+  const [cadConfirmarSenha, setCadConfirmarSenha] = useState("");
+  const [showCadPassword, setShowCadPassword] = useState(false);
+  const [showCadConfirmPassword, setShowCadConfirmPassword] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -163,11 +172,30 @@ function AuthPage() {
       setLoading(true);
       const email = String(f.get("email"));
       const password = String(f.get("senha"));
+      const confirmarSenha = String(f.get("confirmarSenha") ?? "");
       const nome = String(f.get("nome"));
       const nomeEmpresa = String(f.get("empresa"));
       const cnpj = String(f.get("cnpj") ?? "");
       const telefone = String(f.get("telefone") ?? "");
       const segmento = String(f.get("categoria") ?? "reciclagem");
+
+      // 1. Validação de complexidade da senha
+      const { isValid } = validatePassword(password);
+      if (!isValid) {
+        toast.error("Senha não atende aos requisitos", {
+          description:
+            "A senha deve ter no mínimo 8 caracteres com maiúscula, minúscula, número e caractere especial.",
+        });
+        return;
+      }
+
+      // 2. Validação de confirmação de senha
+      if (password !== confirmarSenha) {
+        toast.error("Senhas não coincidem", {
+          description: "Certifique-se de que a senha e a confirmação sejam exatamente iguais.",
+        });
+        return;
+      }
 
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -354,21 +382,55 @@ function AuthPage() {
                     <Input
                       id="senha-cad"
                       name="senha"
-                      type={showPassword ? "text" : "password"}
+                      type={showCadPassword ? "text" : "password"}
                       required
-                      minLength={6}
+                      value={cadSenha}
+                      onChange={(e) => setCadSenha(e.target.value)}
                       autoComplete="new-password"
+                      placeholder="Crie uma senha forte"
                       className="pr-10"
                     />
                     <button
                       type="button"
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                      onClick={() => setShowPassword(!showPassword)}
+                      onClick={() => setShowCadPassword(!showCadPassword)}
+                      aria-label={showCadPassword ? "Ocultar senha" : "Ver senha"}
                     >
-                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      {showCadPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
                 </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="confirmar-senha-cad">Confirmar Senha</Label>
+                  <div className="relative">
+                    <Input
+                      id="confirmar-senha-cad"
+                      name="confirmarSenha"
+                      type={showCadConfirmPassword ? "text" : "password"}
+                      required
+                      value={cadConfirmarSenha}
+                      onChange={(e) => setCadConfirmarSenha(e.target.value)}
+                      autoComplete="new-password"
+                      placeholder="Repita a senha"
+                      className="pr-10"
+                    />
+                    <button
+                      type="button"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      onClick={() => setShowCadConfirmPassword(!showCadConfirmPassword)}
+                      aria-label={showCadConfirmPassword ? "Ocultar confirmação" : "Ver confirmação"}
+                    >
+                      {showCadConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                  {cadConfirmarSenha && cadSenha !== cadConfirmarSenha && (
+                    <p className="text-xs text-destructive">As senhas não coincidem.</p>
+                  )}
+                </div>
+
+                <PasswordRequirements password={cadSenha} />
+
                 <Button type="submit" variant="brand" className="w-full" disabled={loading}>
                   {loading ? "Criando..." : "Criar conta da empresa"}
                 </Button>

@@ -6,7 +6,9 @@ import { LogoFull } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Eye, EyeOff, Check, Loader2, AlertCircle } from "lucide-react";
+import { Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
+import { validatePassword } from "@/lib/password-validator";
+import { PasswordRequirements } from "@/components/PasswordRequirements";
 
 export const Route = createFileRoute("/redefinir-senha")({
   head: () => ({
@@ -77,15 +79,7 @@ function Redefinir() {
     };
   }, []);
 
-  const regras = [
-    { label: "Mínimo de 8 caracteres", valida: senha.length >= 8 },
-    { label: "Pelo menos uma letra maiúscula", valida: /[A-Z]/.test(senha) },
-    { label: "Pelo menos uma letra minúscula", valida: /[a-z]/.test(senha) },
-    { label: "Pelo menos um número", valida: /[0-9]/.test(senha) },
-    { label: "Pelo menos um caractere especial (!@#$...)", valida: /[^A-Za-z0-9]/.test(senha) },
-  ];
-
-  const senhaValida = regras.every((r) => r.valida);
+  const { isValid: senhaValida } = validatePassword(senha);
   const coincidem = senha.length > 0 && senha === confirmarSenha;
 
   async function salvar(e: React.FormEvent) {
@@ -219,26 +213,7 @@ function Redefinir() {
           )}
         </div>
 
-        <div className="rounded-2xl border bg-muted/40 p-3.5 space-y-2">
-          <p className="text-xs font-medium text-foreground">Requisitos da senha:</p>
-          <ul className="space-y-1.5 text-xs">
-            {regras.map((regra, i) => (
-              <li
-                key={i}
-                className={`flex items-center gap-2 transition-colors ${
-                  regra.valida ? "text-primary font-medium" : "text-muted-foreground"
-                }`}
-              >
-                {regra.valida ? (
-                  <Check className="h-3.5 w-3.5 text-primary shrink-0" />
-                ) : (
-                  <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/50 shrink-0 ml-1 mr-1" />
-                )}
-                <span>{regra.label}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
+        <PasswordRequirements password={senha} />
 
         <Button
           type="submit"
