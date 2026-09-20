@@ -124,28 +124,42 @@ function AuthPage() {
         }
 
         // 4. Validação de Trial Expirado
-        const dataLimite = new Date(empresa.trial_ate);
-        const hoje = new Date();
-        const isTrialVencido = dataLimite < hoje && !empresa.assinatura_ativa;
-
-        if (isTrialVencido) {
-          // Redireciona para a tela de bloqueio/escolha de plano
-          navigate({ to: "/trial-expirado", replace: true });
-          return;
+        // Apenas bloqueia se trial_ate estiver explicitamente preenchido e já expirado sem assinatura ativa
+        if (empresa?.trial_ate && !empresa.assinatura_ativa) {
+          const dataLimite = new Date(empresa.trial_ate);
+          const hoje = new Date();
+          if (!isNaN(dataLimite.getTime()) && dataLimite < hoje) {
+            // Redireciona para a tela de bloqueio/escolha de plano
+            navigate({ to: "/trial-expirado", replace: true });
+            return;
+          }
         }
 
         // 5. Roteamento Inteligente por Segmento
-        switch (empresa.categoria) {
+        const isProdDomain =
+          typeof window !== "undefined" &&
+          (window.location.hostname.endsWith("basezeroum.com.br") ||
+            window.location.hostname === "basezeroum.com.br");
+
+        switch (empresa?.categoria) {
           case "reciclagem":
             navigate({ to: "/painel", replace: true });
             break;
 
           case "adega":
-            window.location.href = "https://adega.basezeroum.com.br";
+            if (isProdDomain) {
+              window.location.href = "https://adega.basezeroum.com.br";
+            } else {
+              navigate({ to: "/painel", replace: true });
+            }
             break;
 
           case "admin":
-            window.location.href = "https://admin.basezeroum.com.br";
+            if (isProdDomain) {
+              window.location.href = "https://admin.basezeroum.com.br";
+            } else {
+              navigate({ to: "/painel", replace: true });
+            }
             break;
 
           case "multi":
@@ -217,12 +231,21 @@ function AuthPage() {
         return;
       }
 
+      const isProdDomain =
+        typeof window !== "undefined" &&
+        (window.location.hostname.endsWith("basezeroum.com.br") ||
+          window.location.hostname === "basezeroum.com.br");
+
       // Redirecionamento pós-cadastro imediato
       if (data.session) {
         if (segmento === "reciclagem") {
           navigate({ to: "/painel", replace: true });
         } else if (segmento === "adega") {
-          window.location.href = "https://adega.basezeroum.com.br";
+          if (isProdDomain) {
+            window.location.href = "https://adega.basezeroum.com.br";
+          } else {
+            navigate({ to: "/painel", replace: true });
+          }
         } else {
           navigate({ to: "/painel", replace: true });
         }

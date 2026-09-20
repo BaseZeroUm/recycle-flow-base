@@ -15,94 +15,109 @@ export const cookieOptions = {
   secure: isProductionDomain,
 };
 
-function getCookie(name: string): string | null {
+function getRawCookie(name: string): string | null {
   if (typeof document === 'undefined') return null;
-  const nameEQ = `${encodeURIComponent(name)}=`;
-  const ca = document.cookie.split(';');
-  for (let i = 0; i < ca.length; i++) {
-    let c = ca[i];
-    if (!c) continue;
-    while (c.charAt(0) === ' ') c = c.substring(1, c.length);
-    if (c.indexOf(nameEQ) === 0) {
-      return decodeURIComponent(c.substring(nameEQ.length, c.length));
+  const prefix = `${encodeURIComponent(name)}=`;
+  const cookies = document.cookie.split(';');
+  for (let i = 0; i < cookies.length; i++) {
+    const c = cookies[i].trim();
+    if (c.indexOf(prefix) === 0) {
+      return c.substring(prefix.length);
     }
   }
   return null;
 }
 
-function setCookie(name: string, value: string) {
+function setRawCookie(name: string, value: string) {
   if (typeof document === 'undefined') return;
   const domainPart = cookieOptions.domain ? `; domain=${cookieOptions.domain}` : '';
   const securePart = cookieOptions.secure ? '; Secure' : '';
-  document.cookie = `${encodeURIComponent(name)}=${encodeURIComponent(value)}${domainPart}; path=/; max-age=31536000; SameSite=${cookieOptions.sameSite}${securePart}`;
+  document.cookie = `${encodeURIComponent(name)}=${value}${domainPart}; path=/; max-age=31536000; SameSite=${cookieOptions.sameSite}${securePart}`;
 }
 
-function deleteCookie(name: string) {
+function deleteRawCookie(name: string) {
   if (typeof document === 'undefined') return;
   const domainPart = cookieOptions.domain ? `; domain=${cookieOptions.domain}` : '';
-  document.cookie = `${encodeURIComponent(name)}=; domain=${cookieOptions.domain || ''}; path=/; max-age=0; SameSite=${cookieOptions.sameSite}`;
+  document.cookie = `${encodeURIComponent(name)}=${domainPart}; path=/; max-age=0; SameSite=${cookieOptions.sameSite}`;
   if (cookieOptions.domain) {
     document.cookie = `${encodeURIComponent(name)}=; path=/; max-age=0; SameSite=${cookieOptions.sameSite}`;
   }
 }
 
-function setCookieValue(name: string, value: string) {
-  const encoded = encodeURIComponent(value);
-  const CHUNK_SIZE = 3000;
-  if (encoded.length <= CHUNK_SIZE) {
-    setCookie(name, value);
-    let i = 0;
-    while (getCookie(`${name}.${i}`) !== null) {
-      deleteCookie(`${name}.${i}`);
-      i++;
-    }
-    return;
-  }
+const CHUNK_SIZE = 3000;
 
-  deleteCookie(name);
-  let chunkIdx = 0;
-  for (let offset = 0; offset < encoded.length; offset += CHUNK_SIZE) {
-    const chunkVal = decodeURIComponent(encoded.slice(offset, offset + CHUNK_SIZE));
-    setCookie(`${name}.${chunkIdx}`, chunkVal);
-    chunkIdx++;
-  }
-  while (getCookie(`${name}.${chunkIdx}`) !== null) {
-    deleteCookie(`${name}.${chunkIdx}`);
-    chunkIdx++;
+function setCookieValue(name: string, value: string) {
+  try {
+    const encoded = encodeURIComponent(value);
+    if (encoded.length <= CHUNK_SIZE) {
+      setRawCookie(name, encoded);
+      let i = 0;
+      while (getRawCookie(`${name}.${i}`) !== null) {
+        deleteRawCookie(`${name}.${i}`);
+        i++;
+      }
+      return;
+    }
+
+    deleteRawCookie(name);
+    let chunkIdx = 0;
+    for (let offset = 0; offset < encoded.length; offset += CHUNK_SIZE) {
+      const chunk = encoded.slice(offset, offset + CHUNK_SIZE);
+      setRawCookie(`${name}.${chunkIdx}`, chunk);
+      chunkIdx++;
+    }
+    while (getRawCookie(`${name}.${chunkIdx}`) !== null) {
+      deleteRawCookie(`${name}.${chunkIdx}`);
+      chunkIdx++;
+    }
+  } catch (e) {
+    console.error('[CookieStorage] erro ao salvar cookie:', e);
   }
 }
 
 function getCookieValue(name: string): string | null {
-  const single = getCookie(name);
-  if (single !== null) return single;
+  try {
+    const single = getRawCookie(name);
+    if (single !== null) {
+      return decodeURIComponent(single);
+    }
 
-  let chunkIdx = 0;
-  let fullEncoded = '';
-  while (true) {
-    const chunk = getCookie(`${name}.${chunkIdx}`);
-    if (chunk === null) break;
-    fullEncoded += encodeURIComponent(chunk);
-    chunkIdx++;
-  }
-  if (chunkIdx > 0) {
-    return decodeURIComponent(fullEncoded);
+    let chunkIdx = 0;
+    let fullEncoded = '';
+    while (true) {
+      const chunk = getRawCookie(`${name}.${chunkIdx}`);
+      if (chunk === null) break;
+      fullEncoded += chunk;
+      chunkIdx++;
+    }
+    if (chunkIdx > 0) {
+      return decodeURIComponent(fullEncoded);
+    }
+  } catch (e) {
+    console.error('[CookieStorage] erro ao ler cookie:', e);
   }
   return null;
 }
 
 function removeCookieValue(name: string) {
-  deleteCookie(name);
-  let i = 0;
-  while (getCookie(`${name}.${i}`) !== null) {
-    deleteCookie(`${name}.${i}`);
-    i++;
+  try {
+    deleteRawCookie(name);
+    let i = 0;
+    while (getRawCookie(`${name}.${i}`) !== null) {
+      deleteRawCookie(`${name}.${i}`);
+      i++;
+    }
+  } catch (e) {
+    console.error('[CookieStorage] erro ao remover cookie:', e);
   }
 }
 
 const sharedAuthStorage = {
   getItem: (key: string): string | null => {
-    const cookieVal = getCookieValue(key);
-    if (cookieVal) return cookieVal;
+    try {
+      const cookieVal = getCookieValue(key);
+      if (cookieVal) return cookieVal;
+    } catch {}
     try {
       return typeof localStorage !== 'undefined' ? localStorage.getItem(key) : null;
     } catch {
@@ -115,9 +130,7 @@ const sharedAuthStorage = {
       if (typeof localStorage !== 'undefined') {
         localStorage.setItem(key, value);
       }
-    } catch {
-      // Ignora erro de quota
-    }
+    } catch {}
   },
   removeItem: (key: string): void => {
     removeCookieValue(key);
@@ -125,9 +138,7 @@ const sharedAuthStorage = {
       if (typeof localStorage !== 'undefined') {
         localStorage.removeItem(key);
       }
-    } catch {
-      // Ignora
-    }
+    } catch {}
   },
 };
 
@@ -136,6 +147,10 @@ function getAuthStorage() {
   const preview = brokeredPreviewStorage();
   if (preview && preview !== localStorage) {
     return preview;
+  }
+  // Em ambiente local/desenvolvimento, usa localStorage para evitar conflitos de cookies cross-domain
+  if (!isProductionDomain) {
+    return localStorage;
   }
   return sharedAuthStorage;
 }
