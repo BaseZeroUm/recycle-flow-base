@@ -679,10 +679,6 @@ export type Database = {
         }
         Returns: boolean
       }
-      registrar_ping_atividade: {
-        Args: Record<string, never>
-        Returns: void
-      }
     }
     Enums: {
       app_role: "admin" | "financeiro" | "operacional"
