@@ -2,7 +2,6 @@ import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/AppShell";
 import { TrialGate } from "@/components/TrialGate";
-import { useUserHeartbeat } from "@/hooks/use-user-heartbeat";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -15,8 +14,6 @@ export const Route = createFileRoute("/_authenticated")({
 });
 
 function AuthenticatedLayout() {
-  useUserHeartbeat();
-
   return (
     <AppShell>
       <TrialGate>
