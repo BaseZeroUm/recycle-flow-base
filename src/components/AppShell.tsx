@@ -10,7 +10,6 @@ import {
   LayoutDashboard,
   LogOut,
   Scale,
-  Users,
   Wallet,
   LineChart,
   Factory,
@@ -58,8 +57,7 @@ const grupos: { label: string; itens: Item[] }[] = [
     label: "Cadastros",
     itens: [
       { title: "Cadastros", url: "/cadastros", icon: BarChart3, acesso: "todos" },
-      { title: "Empresa", url: "/empresa", icon: Building2, acesso: "admin" },
-      { title: "Usuários", url: "/usuarios", icon: Users, acesso: "admin" },
+      { title: "Empresa", url: "/empresa", icon: Building2, acesso: "todos" },
     ],
   },
 ];
