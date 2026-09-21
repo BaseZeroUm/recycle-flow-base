@@ -1,14 +1,10 @@
 import { useEffect, useState } from "react";
 import { Clock } from "lucide-react";
 import { useSessao } from "@/hooks/use-sessao";
+import { cn } from "@/lib/utils";
+import { calcularStatusTrial, formatarTempoTrial, type InfoTrial } from "@/lib/trial";
 
-function restante(ate: string) {
-  const ms = new Date(ate).getTime() - Date.now();
-  if (ms <= 0) return null;
-  const horas = Math.floor(ms / 3_600_000);
-  const minutos = Math.floor((ms % 3_600_000) / 60_000);
-  return { horas, minutos };
-}
+export { calcularStatusTrial, formatarTempoTrial, type InfoTrial };
 
 export function TrialContador() {
   const { data: sessao } = useSessao();
@@ -19,21 +15,28 @@ export function TrialContador() {
     return () => clearInterval(id);
   }, []);
 
+  // Se não há sessão, ou se já possui assinatura ativa, ou se não há data de trial definida, não exibe
   if (!sessao || sessao.assinaturaAtiva || !sessao.trialAte) return null;
-  const r = restante(sessao.trialAte);
-  void tick;
-  if (!r) return null;
 
-  const texto =
-    r.horas > 0
-      ? `Você tem mais ${r.horas}h ${r.minutos}min grátis`
-      : `Você tem mais ${r.minutos}min grátis`;
+  // Evita warning de variável não lida e força reavaliação no tick
+  void tick;
+
+  const status = calcularStatusTrial(sessao.trialAte);
+  if (!status) return null;
 
   return (
-    <div className="flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary">
-      <Clock className="h-3.5 w-3.5" />
-      <span className="hidden sm:inline">{texto}</span>
-      <span className="sm:hidden">{r.horas > 0 ? `${r.horas}h grátis` : `${r.minutos}min`}</span>
+    <div
+      className={cn(
+        "flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors",
+        status.expirado
+          ? "border-destructive/30 bg-destructive/10 text-destructive"
+          : "border-primary/30 bg-primary/10 text-primary"
+      )}
+      title={status.texto}
+    >
+      <Clock className="h-3.5 w-3.5 shrink-0" />
+      <span className="hidden sm:inline">{status.texto}</span>
+      <span className="sm:hidden">{status.textoCurto}</span>
     </div>
   );
 }
