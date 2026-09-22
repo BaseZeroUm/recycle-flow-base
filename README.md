@@ -1,230 +1,250 @@
-# Base 01: Recicle & Gerencie
+# ♻️ Base 01: Recicle & Gerencie (`recycle-flow-base`)
 
-Especificação — Sistema de Gestão para Empresas de Reciclagem (Base 01)
+> **Repositório Oficial:** [BaseZeroUm/recycle-flow-base](https://github.com/BaseZeroUm/recycle-flow-base)  
+> **Editor no Lovable:** [Projeto Lovable](https://lovable.dev/projects/a00e5eff-1eaf-4b2c-9457-10761441ed82)  
+> **Live App (Staging/Lovable):** [recycle-flow-base.lovable.app](https://recycle-flow-base.lovable.app)  
+> **Domínio de Produção:** `reciclagem.basezeroum.com.br` (ou `app.basezeroum.com.br`)  
+> **Stack Principal:** TanStack Start (SSR), React 19, TypeScript, Tailwind CSS v4, Supabase (Auth + PostgreSQL RLS Multi-Tenant)
 
-Documento pronto para colar no Lovable como prompt inicial de construção do projeto. Ajuste as seções marcadas com [AJUSTAR] conforme a necessidade real do negócio.
+---
 
-1. Visão geral do produto
+## 📌 Visão Geral do Produto & Arquitetura
 
-Construir um sistema web (SaaS multiempresa) chamado Base 01, para gestão operacional e financeira de empresas do setor de reciclagem. Cada empresa cliente possui sua própria conta, com login e senha próprios, e enxerga apenas os seus dados (isolamento total entre empresas — multi-tenant).
+O **Base 01 Recicle & Gerencie** é um sistema web SaaS **multiempresa (multi-tenant)** projetado especificamente para a gestão operacional e financeira de empresas do setor de reciclagem, aparas e sucatas.
 
-O sistema deve permitir:
+Além de sua função operacional primária, este projeto atua como o **Hub Central de Autenticação e Roteamento** do ecossistema Base Zero Um:
+1. **Isolamento Total por Empresa (RLS):** Cada cliente possui sua empresa cadastrada (`empresa_id`) e só enxerga os seus próprios dados (materiais, clientes, fornecedores, estoque, balança e finanças).
+2. **Login Centralizado Inteligente:** A rota `/auth` valida o usuário no Supabase Auth e, com base na `categoria` da empresa (`reciclagem`, `adega`, `admin`), direciona o usuário para o sistema correto.
+3. **Sessão Unificada entre Subdomínios (SSO):** Utiliza cookies com escopo `.basezeroum.com.br`, permitindo que um usuário logado transite entre os sistemas sem refazer login.
+4. **Controle de Período de Avaliação (Trial Engine):** Regras de expiração de teste gratuito (`trial_ate` e `assinatura_ativa`) com telas dedicadas de bloqueio e renovação (`/trial-expirado` e `/assinatura`).
 
-Cadastro e login de empresas (contas) e de usuários dentro de cada empresa, com perfis de acesso distintos.
+---
 
-Lançamento de receitas e despesas (financeiro).
+## 🗺️ Matriz Geral de Configuração: Links, Fases e Dados a Captar
 
-Controle de estoque de materiais recicláveis (entrada por compra/coleta, saída por venda).
+Abaixo está o guia detalhado de todos os serviços, links de painéis, dados que devem ser extraídos e onde devem ser inseridos:
 
-Dashboards de análise: faturamento, estoque, indicadores operacionais.
+| Fase | Serviço / Plataforma | Link Direto do Console / Painel | O Que Captar / Gerar Nesse Link | Onde Configurar no Projeto |
+| :--- | :--- | :--- | :--- | :--- |
+| **Fase 1** | **Lovable Editor** | [lovable.dev/projects/a00e5eff...](https://lovable.dev/projects/a00e5eff-1eaf-4b2c-9457-10761441ed82) | • Acesso de edição visual e prompts<br>• Variáveis de ambiente de deploy (Secrets) | Lovable Project Settings → Environment Variables |
+| **Fase 1** | **GitHub** | [github.com/BaseZeroUm/recycle-flow-base](https://github.com/BaseZeroUm/recycle-flow-base) | • Clone do repositório remoto<br>• Token de Acesso / SSH | Ambiente de desenvolvimento local |
+| **Fase 2** | **Supabase (API Settings)** | [supabase.com/dashboard/project/vqemjfcfeizgcnpihyve/settings/api](https://supabase.com/dashboard/project/vqemjfcfeizgcnpihyve/settings/api) | • `Project URL`<br>• `anon / publishable key`<br>• `service_role key` (privada) | `.env` e Lovable Secrets:<br>`SUPABASE_URL`<br>`SUPABASE_PUBLISHABLE_KEY`<br>`SUPABASE_SERVICE_ROLE_KEY` |
+| **Fase 2** | **Supabase (SQL Editor)** | [supabase.com/dashboard/project/vqemjfcfeizgcnpihyve/sql](https://supabase.com/dashboard/project/vqemjfcfeizgcnpihyve/sql) | • Execução de schemas DDL<br>• Triggers de numeração de ticket de pesagem<br>• Políticas RLS por `empresa_id` | `supabase/migrations/` |
+| **Fase 3** | **Supabase Auth (Settings)** | [supabase.com/dashboard/project/vqemjfcfeizgcnpihyve/auth/url-configuration](https://supabase.com/dashboard/project/vqemjfcfeizgcnpihyve/auth/url-configuration) | • `Site URL`: URL de produção<br>• `Redirect URLs`: URLs de retorno permitidas (ex: `http://localhost:5173/**`, `https://reciclagem.basezeroum.com.br/**`) | Painel do Supabase Auth > URL Configuration |
+| **Fase 3** | **Templates de Email Auth** | [supabase.com/dashboard/project/vqemjfcfeizgcnpihyve/auth/templates](https://supabase.com/dashboard/project/vqemjfcfeizgcnpihyve/auth/templates) | • Link de redefinição de senha com fragmento `#type=recovery`<br>• Remetente de e-mail | Supabase Auth > Email Templates (Reset Password) |
+| **Fase 4** | **DNS & Subdomínio** | Cloudflare / Registro.br / Vercel DNS | • Apontamento `CNAME` para `reciclagem.basezeroum.com.br`<br>• Configuração de SSL/TLS | Painel de DNS do domínio `basezeroum.com.br` |
+| **Fase 5** | **Assinaturas & Checkout** | Gateway de Pagamento (Asaas, Stripe, etc.) | • Links de checkout dos planos (`Mensal`, `Trimestral`, `Anual`)<br>• Webhook para atualizar `assinatura_ativa = true` | `src/routes/assinatura.tsx` |
+| **Fase 6** | **Operação & Impressão** | Configurações do Navegador / Sistema | • Formato de impressão de tickets (térmica de 80mm ou padrão A4) | `src/lib/impressao.ts` e tela `/estoque` |
 
-Fluxo de caixa.
+---
 
-DRE (Demonstração do Resultado do Exercício) gerada automaticamente a partir dos lançamentos.
+## 🛠️ Detalhamento Passo a Passo por Fases
 
-Identidade visual da marca Base 01 aplicada em toda a interface.
+---
 
-2. Identidade visual — Base 01
+### 🔹 Fase 1: Conexão Lovable & Repositório GitHub
 
-Já existe o logo oficial da marca (anexar os arquivos de imagem ao prompt do Lovable). Ele consiste em um ícone geométrico abstrato (padrão tipo "01"/circuito) com gradiente de azul para verde-água, disponível em:
+1. **Repositório GitHub:**
+   - Link: [https://github.com/BaseZeroUm/recycle-flow-base](https://github.com/BaseZeroUm/recycle-flow-base)
+2. **Sincronização com Lovable:**
+   - Link do projeto: [https://lovable.dev/projects/a00e5eff-1eaf-4b2c-9457-10761441ed82](https://lovable.dev/projects/a00e5eff-1eaf-4b2c-9457-10761441ed82)
+   - ⚠️ **ATENÇÃO CRÍTICA (Regra de Histórico Git):** Nunca reescreva o histórico do Git (`git push --force`, `rebase`, `amend` ou `squash` de commits já publicados). Isso quebra o rastreamento interno do Lovable e pode fazer você perder o histórico do projeto.
 
-versão ícone isolado, para fundo claro;
+---
 
-versão ícone isolado, para fundo escuro;
+### 🔹 Fase 2: Banco de Dados & RLS Multi-Tenant (Supabase)
 
-versão ícone + nome "01"/"Base 01" por extenso, para fundo claro;
+O banco de dados do sistema reside no projeto Supabase da aplicação:
+* **Dashboard do Projeto:** `https://supabase.com/dashboard/project/vqemjfcfeizgcnpihyve`
 
-versão ícone + nome, para fundo escuro.
+#### 1. O que captar no painel:
+Acesse **Project Settings** > **API**:
+- `Project URL`: `https://vqemjfcfeizgcnpihyve.supabase.co`
+- `Publishable / anon key`: `sb_publishable_S5GyyviR8rjNCvN4AJrTjA_LAF8XJOP`
+- `service_role (secret)`: Token administrativo de backend.
 
-Usar essa identidade como base para todo o design system do sistema:
+#### 2. Tabelas e Isolamento por RLS:
+Todas as tabelas de negócio possuem a coluna `empresa_id` e a função auxiliar `current_empresa_id()` para garantir que nenhum cliente visualize dados de outra empresa:
 
-Paleta principal: gradiente azul → verde-água do logo (aprox. azul #4FA8DE/#4EC3E0 a verde-menta #7FD1A8/#8FD9B4), aplicado em elementos de destaque (botões primários, gráficos, ícone ativo do menu, cabeçalhos de cards).
+```sql
+-- Função helper para recuperar a empresa do usuário autenticado
+CREATE OR REPLACE FUNCTION public.current_empresa_id() RETURNS uuid
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
+  SELECT empresa_id FROM public.profiles WHERE id = auth.uid();
+$$;
 
-Fundo claro (tema padrão): branco/cinza muito claro, com o logo na versão "fundo claro".
-
-Fundo escuro (opcional, dark mode): cinza-grafite/azul-marinho escuro, com o logo na versão "fundo escuro".
-
-Cores neutras de apoio: cinza-grafite para texto, cinza-claro para bordas/divisores.
-
-Tipografia: sans-serif moderna e legível (ex: Inter, Manrope), combinando com o estilo geométrico e limpo do ícone.
-
-Estilo geral: interface limpa, tipo SaaS de gestão (dashboards com cards, gráficos, tabelas), usando o gradiente do logo com moderação — como acento, não em fundos inteiros — para manter legibilidade.
-
-Aplicação do logo: ícone isolado no topo do menu lateral (colapsado) e favicon; versão com nome completo na tela de login e no cabeçalho quando o menu está expandido.
-
-3. Modelo de acesso e multiempresa (multi-tenant)
-
-O sistema é multiempresa (multi-tenant): várias empresas de reciclagem usam o mesmo sistema Base 01, mas cada uma tem seus dados completamente isolados (nenhuma empresa vê dados de outra).
-
-Cada empresa possui uma conta própria, criada via cadastro (nome da empresa, CNPJ, dados de contato, responsável).
-
-Dentro de cada empresa, podem existir múltiplos usuários, cada um com login e senha próprios, vinculados àquela empresa.
-
-Autenticação: e-mail + senha, com opção de recuperação de senha.
-
-[AJUSTAR] Definir se haverá um painel de "super admin" (da Base 01) para gerenciar todas as empresas clientes (ativar/desativar contas, ver métricas de uso, suporte).
-
-3.1 Perfis de usuário (papéis) dentro de cada empresa
-
-Perfil Permissões Admin (dono/gestor) Acesso total: cadastros, financeiro, estoque, dashboards, DRE, gestão de usuários da própria empresa Financeiro Lançamento de receitas/despesas, fluxo de caixa, DRE, relatórios financeiros — sem acesso a gestão de usuários Operacional Lançamento de entrada/saída de estoque (pesagem, compra, venda de material), sem acesso a dados financeiros sensíveis
-
-[AJUSTAR] Caso o negócio precise de perfis diferentes ou de permissões mais granulares (por exemplo, acesso somente-leitura para investidores/contador), detalhar aqui.
-
-4. Módulos do sistema
-
-4.1 Cadastros básicos
-
-Empresa: dados da empresa (razão social, CNPJ, endereço, contato).
-
-Usuários: nome, e-mail, senha, perfil de acesso, status (ativo/inativo).
-
-Materiais recicláveis: cadastro de tipos de material (ex: papelão, PET, plástico misto, alumínio, vidro, metal ferroso, sucata eletrônica etc.), unidade de medida (kg/ton), preço médio de compra e venda.
-
-Fornecedores/Coletores: catadores, cooperativas, empresas parceiras que fornecem material.
-
-Clientes/Compradores: indústrias e recicladoras que compram o material processado.
-
-Categorias de despesa: categorias para classificar despesas (operacional, administrativa, frota, folha, impostos etc.), usadas na DRE.
-
-4.2 Estoque
-
-Registro de entrada de material (compra/coleta): fornecedor, tipo de material, peso/quantidade, valor pago, data.
-
-Registro de saída de material (venda): cliente comprador, tipo de material, peso/quantidade, valor recebido, data.
-
-Saldo de estoque atual por tipo de material (quantidade e valor).
-
-Histórico de movimentações por material/período.
-
-Alertas de estoque baixo ou parado [AJUSTAR — opcional].
-
-4.3 Financeiro — Lançamento de despesas e receitas
-
-Tela de lançamento de despesas: descrição, categoria, valor, data de vencimento, data de pagamento, forma de pagamento, status (pendente/pago/atrasado), anexo de comprovante/nota.
-
-Tela de lançamento de receitas: vinculadas às vendas de material (podem ser geradas automaticamente a partir do módulo de estoque/saída) ou lançadas manualmente (outras receitas).
-
-Contas a pagar e a receber, com visão de vencimentos.
-
-[AJUSTAR] Definir se haverá integração com emissão de nota fiscal, boleto ou PIX, ou se por ora é só controle manual.
-
-4.4 Fluxo de caixa
-
-Visão consolidada de entradas e saídas por período (diário, semanal, mensal).
-
-Saldo acumulado de caixa.
-
-Projeção de fluxo de caixa futuro com base em contas a pagar/receber já lançadas.
-
-Filtros por período, categoria e forma de pagamento.
-
-4.5 DRE (Demonstração do Resultado do Exercício)
-
-Gerada automaticamente a partir dos lançamentos financeiros, estruturada como:
-
-(+) Receita Bruta (vendas de material reciclável + outras receitas)
-(-) Deduções/Impostos sobre venda
-(=) Receita Líquida
-(-) Custo do material vendido (CMV — baseado no custo de aquisição do material)
-(=) Lucro Bruto
-(-) Despesas Operacionais (por categoria: administrativa, frota, folha, etc.)
-(=) Resultado Operacional (EBITDA simplificado)
-(-) Despesas Financeiras
-(=) Lucro/Prejuízo Líquido
-
-
-Filtros por período (mês, trimestre, ano) e comparação entre períodos.
-
-Exportação em PDF/Excel [AJUSTAR — opcional].
-
-4.6 Dashboards de análise
-
-Painel inicial (home) com cards e gráficos:
-
-Faturamento: receita total no período, evolução mensal (gráfico de linha/barra), comparação com período anterior.
-
-Estoque: quantidade total em estoque por tipo de material, valor total em estoque, materiais com maior giro.
-
-Financeiro: saldo de caixa atual, contas a pagar/receber em aberto, despesas por categoria (gráfico de pizza).
-
-Operacional: volume comprado x vendido por período, ticket médio por material.
-
-Filtros gerais por período em todos os dashboards.
-
-5. Fluxo operacional do negócio (contexto para o Lovable entender o domínio)
-
-A empresa de reciclagem:
-
-Compra/coleta material reciclável de fornecedores/catadores/cooperativas, pesando e classificando por tipo de material → gera entrada de estoque e, opcionalmente, despesa/pagamento ao fornecedor.
-
-Processa/separa o material (fora do escopo do sistema, por ora).
-
-Vende o material processado para indústrias/recicladoras → gera saída de estoque e receita.
-
-Todas as movimentações alimentam o fluxo de caixa e a DRE automaticamente.
-
-[AJUSTAR] Se o negócio também cobra por serviço de coleta (sem necessariamente "comprar" o material), incluir um módulo adicional de "Serviços/Coleta" com faturamento por contrato ou por chamada de coleta.
-
-6. Requisitos técnicos e não funcionais
-
-Aplicação web responsiva (desktop e mobile/tablet, já que operação de pátio pode usar tablet para pesagem).
-
-Autenticação segura por empresa (multi-tenant com isolamento de dados).
-
-Banco de dados relacional com estrutura preparada para multiempresa (cada registro vinculado a um empresa_id).
-
-Permissões por perfil de usuário aplicadas em todas as telas e ações.
-
-Histórico/auditoria básica de lançamentos (quem lançou, quando).
-
-Interface em português (pt-BR), formatos de data e moeda brasileiros (R$).
-
-7. Roadmap sugerido (para construção incremental no Lovable)
-
-MVP: autenticação multiempresa + cadastros básicos + lançamento de despesas/receitas + fluxo de caixa simples.
-
-Fase 2: módulo de estoque completo (entrada/saída por material) + dashboards de faturamento e estoque.
-
-Fase 3: DRE automatizada + dashboards operacionais avançados + exportações.
-
-Fase 4 [AJUSTAR — opcional]: integrações (nota fiscal, PIX/boleto), app mobile para pesagem em campo, painel de super admin da Base 01.
-
-8. Pontos em aberto para você definir antes/durante a construção
-
-Confirmar se o modelo é realmente multi-tenant SaaS (várias empresas no mesmo sistema) ou uma única empresa multiusuário.
-
-Confirmar se o negócio envolve apenas compra/venda de material, prestação de serviço de coleta, ou ambos.
-
-Definir os perfis de usuário exatos e suas permissões.
-
-Definir se é necessária integração fiscal (NF-e) ou meios de pagamento (PIX/boleto) desde o início.
-
-9. Arquivos de logo para anexar no Lovable
-
-Ao colar este prompt no Lovable, anexe também os 4 arquivos de logo enviados (ícone isolado claro/escuro, ícone + nome claro/escuro), indicando que devem ser usados como logo oficial do sistema — ícone isolado no menu lateral colapsado/favicon, versão com nome na tela de login e cabeçalho.
-
-
-estou enviando prints do meu site, para voce ver nossa identidade visual e replicar
-
-This project was built with [Lovable](https://lovable.dev).
-
-**Live app**: https://recycle-flow-base.lovable.app
-
-## Build with Lovable
-
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/a00e5eff-1eaf-4b2c-9457-10761441ed82).
-
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
-
-## Development
-
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
-
-```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
-npm run dev
+-- Exemplo da política de segurança aplicada em todas as tabelas:
+ALTER TABLE public.movimentacoes_estoque ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "movimentacoes_empresa" ON public.movimentacoes_estoque
+  FOR ALL TO authenticated
+  USING (empresa_id = public.current_empresa_id())
+  WITH CHECK (empresa_id = public.current_empresa_id());
 ```
+
+#### 3. Numeração Sequencial Automática de Tickets:
+Para evitar que tickets de pesagem colidam entre diferentes empresas, existe uma trigger dedicada (`t_numero_ticket`) que gera uma numeração sequencial iniciada em 1 para cada `empresa_id`:
+```sql
+CREATE OR REPLACE FUNCTION public.set_numero_ticket()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+BEGIN
+  IF NEW.numero_ticket IS NULL THEN
+    SELECT COALESCE(MAX(numero_ticket), 0) + 1 INTO NEW.numero_ticket
+    FROM public.movimentacoes_estoque
+    WHERE empresa_id = NEW.empresa_id;
+  END IF;
+  RETURN NEW;
+END; $$;
+```
+
+---
+
+### 🔹 Fase 3: Autenticação, Perfis e Redirecionamento de Senha
+
+1. **Configuração de URLs no Supabase Auth:**
+   - Acesse **Auth** > **URL Configuration**:
+     - **Site URL:** `https://reciclagem.basezeroum.com.br` (ou `https://recycle-flow-base.lovable.app`)
+     - **Redirect URLs:** Adicione:
+       - `http://localhost:5173/**`
+       - `https://reciclagem.basezeroum.com.br/**`
+       - `https://recycle-flow-base.lovable.app/**`
+2. **Fluxo de Recuperação de Senha:**
+   - O e-mail de recuperação dispara um link com hash `#type=recovery`.
+   - Ao acessar, a rota [auth.tsx](file:///c:/Users/brend/Desktop/Projetos%20Open%20Source/recycle-flow-base/src/routes/auth.tsx) intercepta esse evento e redireciona imediatamente para [redefinir-senha.tsx](file:///c:/Users/brend/Desktop/Projetos%20Open%20Source/recycle-flow-base/src/routes/redefinir-senha.tsx), onde a nova senha é validada pelo componente de requisitos de segurança.
+3. **Perfis de Usuário (`user_roles`):**
+   - **`admin`:** Acesso completo a cadastros, estoque, financeiro, DRE, fluxos de caixa e gestão de colaboradores.
+   - **`financeiro`:** Lançamentos de contas a pagar/receber, conciliação bancária, DRE e relatórios.
+   - **`operacional`:** Lançamentos de pesagem, tickets de balança, triagem/beneficiamento e saídas de estoque (sem acesso aos relatórios de faturamento e DRE).
+
+---
+
+### 🔹 Fase 4: Sessão Única (SSO) & Domínios do Ecossistema
+
+Para que a experiência seja fluida entre a Landing Page (`basezeroum.com.br`), o SaaS de Reciclagem (`reciclagem.basezeroum.com.br`) e futuros módulos:
+1. **Configuração de Cookies Compartilhados:**
+   - Em [src/integrations/supabase/client.ts](file:///c:/Users/brend/Desktop/Projetos%20Open%20Source/recycle-flow-base/src/integrations/supabase/client.ts), os cookies de sessão são emitidos para `.basezeroum.com.br`.
+2. **Roteamento Inteligente por Categoria:**
+   - Após autenticar, o sistema consulta a coluna `categoria` da empresa:
+     - `reciclagem`: direciona para `/painel`.
+     - `adega`: redireciona para `https://adega.basezeroum.com.br`.
+     - `admin`: redireciona para `https://admin.basezeroum.com.br`.
+
+---
+
+### 🔹 Fase 5: Gestão de Planos e Período de Teste (Trial Engine)
+
+1. **Campos de Controle na Tabela `empresas`:**
+   - `trial_ate` (timestamptz): Data limite do teste gratuito (geralmente 7 ou 14 dias após o cadastro).
+   - `assinatura_ativa` (boolean): `true` se a empresa possui assinatura regular paga.
+   - `plano` (text): Nome do plano contratado (`mensal`, `trimestral`, `anual`).
+2. **Bloqueio Automático:**
+   - Se `trial_ate` expirou e `assinatura_ativa = false`, o usuário é redirecionado para a rota `/trial-expirado`.
+3. **Testes Automatizados de Trial:**
+   - O projeto conta com testes unitários cobrindo as regras de trial:
+   ```bash
+   npm run test
+   ```
+
+---
+
+### 🔹 Fase 6: Módulos Operacionais e Financeiros
+
+1. **Balança e Estoque (`/estoque`):**
+   - Registro de peso bruto, tara e cálculo automático de peso líquido.
+   - Agrupamento de itens por `tickets` com vínculo ao fornecedor ou cliente.
+   - Emissão e impressão de ticket térmico/comprovante com dados da empresa e motorista.
+2. **Produção / Transformação (`/producao`):**
+   - Lançamento de triagem e prensagem de fardos (consumo de sucata mista -> geração de material prensado).
+3. **Caixa do Pátio (`/caixa`):**
+   - Abertura de caixa diário, aportes de dinheiro para compra de material avulso de catadores, sangrias e conciliação de fechamento.
+4. **Financeiro & DRE (`/financeiro`, `/fluxo-de-caixa`, `/dre`):**
+   - Contas a pagar/receber com baixa por forma de pagamento (PIX, Dinheiro, Transferência).
+   - DRE gerada em tempo real: Receita Bruta, Deduções, Custo do Material Vendido (CMV), Despesas Operacionais e Resultado Líquido.
+
+---
+
+## 💻 Ambiente de Desenvolvimento Local
+
+### 1. Pré-requisitos
+- **Node.js**: Versão 20+
+- **npm** ou **bun**
+
+### 2. Instalação e Execução
+```bash
+# 1. Clonar o repositório
+git clone https://github.com/BaseZeroUm/recycle-flow-base.git
+cd recycle-flow-base
+
+# 2. Instalar dependências
+npm install
+
+# 3. Rodar em modo desenvolvimento
+npm run dev
+
+# 4. Rodar testes automatizados do motor de trial
+npm run test
+```
+
+### 3. Variáveis de Ambiente (`.env`)
+
+Crie o arquivo `.env` na raiz do projeto:
+
+```env
+# ============================================================
+# Supabase Configuration
+# ============================================================
+SUPABASE_PROJECT_ID="vqemjfcfeizgcnpihyve"
+SUPABASE_URL="https://vqemjfcfeizgcnpihyve.supabase.co"
+SUPABASE_PUBLISHABLE_KEY="sb_publishable_S5GyyviR8rjNCvN4AJrTjA_LAF8XJOP"
+
+# Chave secreta de serviço (apenas no ambiente seguro do servidor/Lovable)
+SUPABASE_SERVICE_ROLE_KEY="sb_secret_SUA_CHAVE_SERVICE_ROLE_AQUI"
+
+# Variáveis expostas no bundle do cliente Vite
+VITE_SUPABASE_PROJECT_ID="vqemjfcfeizgcnpihyve"
+VITE_SUPABASE_URL="https://vqemjfcfeizgcnpihyve.supabase.co"
+VITE_SUPABASE_PUBLISHABLE_KEY="sb_publishable_S5GyyviR8rjNCvN4AJrTjA_LAF8XJOP"
+```
+
+---
+
+## 📂 Estrutura do Código-Fonte
+
+```text
+recycle-flow-base/
+├── src/
+│   ├── components/            # Componentes visuais (Modais de ticket, tabelas, cards)
+│   ├── integrations/
+│   │   └── supabase/          # Clientes do Supabase (com cookies .basezeroum.com.br)
+│   ├── lib/
+│   │   ├── caixa.ts           # Cálculos e validações de livro caixa
+│   │   ├── impressao.ts       # Layout e utilitário de impressão de tickets de pesagem
+│   │   ├── trial.ts           # Regras de negócio de período de teste e expiração
+│   │   ├── trial.test.ts      # Testes automatizados do motor de trial
+│   │   └── password-validator.ts # Validação de senhas fortes
+│   └── routes/                # Rotas da aplicação (TanStack Router)
+│       ├── _authenticated/    # Rotas protegidas (exigem login)
+│       │   ├── painel.tsx     # Dashboard geral com cards de estoque e faturamento
+│       │   ├── cadastros.tsx  # Materiais, Fornecedores, Clientes e Categorias
+│       │   ├── estoque.tsx    # Balança, tickets de pesagem e saldo de materiais
+│       │   ├── producao.tsx   # Triagem, enfardamento e transformação
+│       │   ├── caixa.tsx      # Livro caixa do pátio (abertura, sangria, fechamento)
+│       │   ├── financeiro.tsx # Contas a pagar e a receber
+│       │   ├── fluxo-de-caixa.tsx # Entradas e saídas no tempo
+│       │   ├── dre.tsx        # Demonstração do Resultado do Exercício
+│       │   ├── empresa.tsx    # Dados da empresa, CNPJ e logo para o ticket
+│       │   └── usuarios.tsx   # Gestão de usuários e permissões da equipe
+│       ├── auth.tsx           # Tela de login, cadastro e roteador por segmento
+│       ├── redefinir-senha.tsx# Alteração segura de senha
+│       ├── assinatura.tsx     # Escolha e contratação de planos
+│       └── trial-expirado.tsx # Tela de bloqueio quando o período gratuito acaba
+├── supabase/
+│   └── migrations/            # Scripts SQL (tabelas, triggers, RLS, enums)
+└── AGENTS.md                  # Regras de convivência com o Lovable
+```
+
+---
+
+## 🛡️ Políticas de Git e Lovable
+
+- **Sincronia Automática:** O repositório está conectado ao Lovable. Qualquer alteração enviada para a branch `main` é refletida imediatamente no editor.
+- **Histórico Intacto:** Nunca use comandos que alterem commits já enviados (`git push -f`, `rebase`).
