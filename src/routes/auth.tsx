@@ -2,7 +2,6 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
 import { LogoFull } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -262,26 +261,6 @@ function AuthPage() {
     }
   }
 
-  async function google() {
-    if (loading) return;
-    try {
-      setLoading(true);
-      const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
-      });
-      if (result.error) {
-        toast.error("Falha no login com Google");
-        return;
-      }
-      if (result.redirected) return;
-      navigate({ to: "/painel", replace: true });
-    } catch (err: any) {
-      toast.error("Falha no login com Google");
-    } finally {
-      setLoading(false);
-    }
-  }
-
   async function recuperar(email: string) {
     if (loading) return;
     if (!email) {
@@ -460,13 +439,6 @@ function AuthPage() {
               </form>
             </TabsContent>
           </Tabs>
-
-          <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground">
-            <span className="h-px flex-1 bg-border" /> ou <span className="h-px flex-1 bg-border" />
-          </div>
-          <Button variant="outline" className="w-full" onClick={google} disabled={loading}>
-            {loading ? "Conectando..." : "Continuar com Google"}
-          </Button>
         </div>
       </div>
     </div>
