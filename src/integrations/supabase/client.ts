@@ -20,7 +20,7 @@ function getRawCookie(name: string): string | null {
   const prefix = `${encodeURIComponent(name)}=`;
   const cookies = document.cookie.split(';');
   for (let i = 0; i < cookies.length; i++) {
-    const c = cookies[i].trim();
+    const c = cookies[i]?.trim() ?? '';
     if (c.indexOf(prefix) === 0) {
       return c.substring(prefix.length);
     }

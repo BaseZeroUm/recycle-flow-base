@@ -199,6 +199,7 @@ export type Database = {
         Row: {
           assinatura_ativa: boolean
           ativa: boolean
+          categoria: string | null
           cnpj: string | null
           created_at: string
           email: string | null
@@ -207,12 +208,13 @@ export type Database = {
           nome_fantasia: string | null
           razao_social: string
           telefone: string | null
-          trial_ate: string
+          trial_ate: string | null
           updated_at: string
         }
         Insert: {
           assinatura_ativa?: boolean
           ativa?: boolean
+          categoria?: string | null
           cnpj?: string | null
           created_at?: string
           email?: string | null
@@ -221,12 +223,13 @@ export type Database = {
           nome_fantasia?: string | null
           razao_social: string
           telefone?: string | null
-          trial_ate?: string
+          trial_ate?: string | null
           updated_at?: string
         }
         Update: {
           assinatura_ativa?: boolean
           ativa?: boolean
+          categoria?: string | null
           cnpj?: string | null
           created_at?: string
           email?: string | null
@@ -235,7 +238,7 @@ export type Database = {
           nome_fantasia?: string | null
           razao_social?: string
           telefone?: string | null
-          trial_ate?: string
+          trial_ate?: string | null
           updated_at?: string
         }
         Relationships: []
