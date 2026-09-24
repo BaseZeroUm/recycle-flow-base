@@ -257,16 +257,6 @@ BEGIN
     ) THEN
       RAISE EXCEPTION 'categoria_id % does not belong to empresa_id %', NEW.categoria_id, NEW.empresa_id;
     END IF;
-    IF NEW.fornecedor_id IS NOT NULL AND NOT EXISTS (
-      SELECT 1 FROM public.fornecedores WHERE id = NEW.fornecedor_id AND empresa_id = NEW.empresa_id
-    ) THEN
-      RAISE EXCEPTION 'fornecedor_id % does not belong to empresa_id %', NEW.fornecedor_id, NEW.empresa_id;
-    END IF;
-    IF NEW.cliente_id IS NOT NULL AND NOT EXISTS (
-      SELECT 1 FROM public.clientes WHERE id = NEW.cliente_id AND empresa_id = NEW.empresa_id
-    ) THEN
-      RAISE EXCEPTION 'cliente_id % does not belong to empresa_id %', NEW.cliente_id, NEW.empresa_id;
-    END IF;
     IF NEW.movimentacao_id IS NOT NULL AND NOT EXISTS (
       SELECT 1 FROM public.movimentacoes_estoque WHERE id = NEW.movimentacao_id AND empresa_id = NEW.empresa_id
     ) THEN
@@ -406,10 +396,10 @@ GRANT EXECUTE ON FUNCTION public.has_role(uuid, public.app_role) TO authenticate
 REVOKE ALL ON FUNCTION public.can_finance() FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.can_finance() TO authenticated;
 
--- 4. FORÇAR RLS ESTRIBADO (FORCE ROW LEVEL SECURITY) EM TODAS AS TABELAS
+-- 4. FORÇAR RLS ESTRIBADO (FORCE ROW LEVEL SECURITY) EM TODAS AS TABELAS OPERACIONAIS
 ALTER TABLE public.empresas FORCE ROW LEVEL SECURITY;
-ALTER TABLE public.profiles FORCE ROW LEVEL SECURITY;
-ALTER TABLE public.user_roles FORCE ROW LEVEL SECURITY;
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.user_roles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.materiais FORCE ROW LEVEL SECURITY;
 ALTER TABLE public.fornecedores FORCE ROW LEVEL SECURITY;
 ALTER TABLE public.clientes FORCE ROW LEVEL SECURITY;

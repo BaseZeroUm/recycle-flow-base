@@ -11,22 +11,7 @@ BEGIN
   -- Verifica se o schema storage existe na instância PostgreSQL
   IF EXISTS (SELECT 1 FROM information_schema.schemata WHERE schema_name = 'storage') THEN
 
-    -- 1. Habilitar e forçar RLS nas tabelas do storage
-    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'storage' AND table_name = 'objects') THEN
-      EXECUTE 'ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY';
-      EXECUTE 'ALTER TABLE storage.objects FORCE ROW LEVEL SECURITY';
-    END IF;
-
-    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'storage' AND table_name = 'buckets') THEN
-      EXECUTE 'ALTER TABLE storage.buckets ENABLE ROW LEVEL SECURITY';
-      EXECUTE 'ALTER TABLE storage.buckets FORCE ROW LEVEL SECURITY';
-    END IF;
-
-    -- 2. Revogar privilégios diretos da role 'anon' no storage
-    EXECUTE 'REVOKE ALL ON ALL TABLES IN SCHEMA storage FROM anon';
-    EXECUTE 'REVOKE ALL ON ALL ROUTINES IN SCHEMA storage FROM anon';
-
-    -- 3. Remover policies permissivas perigosas conhecidas (caso tenham sido criadas via dashboard)
+    -- 1. Remover policies permissivas perigosas conhecidas (caso tenham sido criadas via dashboard)
     IF EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'storage' AND tablename = 'objects' AND policyname = 'Public Access') THEN
       EXECUTE 'DROP POLICY "Public Access" ON storage.objects';
     END IF;
@@ -39,7 +24,7 @@ BEGIN
       EXECUTE 'DROP POLICY "Authenticated users can upload" ON storage.objects';
     END IF;
 
-    -- 4. Criar política defensiva base para isolamento multi-tenant por empresa_id
+    -- 2. Criar política defensiva base para isolamento multi-tenant por empresa_id
     -- Padrão obrigatório: o primeiro diretório do path deve ser exatamente o empresa_id do usuário autenticado.
     IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'storage' AND table_name = 'objects') THEN
       IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'storage' AND tablename = 'objects' AND policyname = 'tenant_isolation_storage_objects_select') THEN

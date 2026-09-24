@@ -14,7 +14,7 @@ BEGIN
   END IF;
 
   IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chk_materiais_unidade_len') THEN
-    ALTER TABLE public.materiais ADD CONSTRAINT chk_materiais_unidade_len CHECK (unidade IS NULL OR char_length(unidade) <= 20);
+    ALTER TABLE public.materiais ADD CONSTRAINT chk_materiais_unidade_len CHECK (unidade IS NULL OR char_length(unidade::text) <= 20);
   END IF;
 
   -- 2. CATEGORIAS DE MATERIAL
@@ -66,17 +66,13 @@ BEGIN
     ALTER TABLE public.lancamentos ADD CONSTRAINT chk_lancamentos_descricao_len CHECK (char_length(descricao) <= 500);
   END IF;
 
-  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chk_lancamentos_observacoes_len') THEN
-    ALTER TABLE public.lancamentos ADD CONSTRAINT chk_lancamentos_observacoes_len CHECK (observacoes IS NULL OR char_length(observacoes) <= 2000);
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chk_lancamentos_forma_pagamento_len') THEN
+    ALTER TABLE public.lancamentos ADD CONSTRAINT chk_lancamentos_forma_pagamento_len CHECK (forma_pagamento IS NULL OR char_length(forma_pagamento) <= 50);
   END IF;
 
   -- 7. CAIXA MOVIMENTOS
   IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chk_caixa_movimentos_descricao_len') THEN
     ALTER TABLE public.caixa_movimentos ADD CONSTRAINT chk_caixa_movimentos_descricao_len CHECK (char_length(descricao) <= 500);
-  END IF;
-
-  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chk_caixa_movimentos_observacoes_len') THEN
-    ALTER TABLE public.caixa_movimentos ADD CONSTRAINT chk_caixa_movimentos_observacoes_len CHECK (observacoes IS NULL OR char_length(observacoes) <= 2000);
   END IF;
 
   -- 8. TICKETS E MOVIMENTAÇÕES DE ESTOQUE
@@ -116,10 +112,6 @@ BEGIN
 
   IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chk_profiles_email_len') THEN
     ALTER TABLE public.profiles ADD CONSTRAINT chk_profiles_email_len CHECK (email IS NULL OR char_length(email) <= 255);
-  END IF;
-
-  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chk_profiles_telefone_len') THEN
-    ALTER TABLE public.profiles ADD CONSTRAINT chk_profiles_telefone_len CHECK (telefone IS NULL OR char_length(telefone) <= 50);
   END IF;
 
 END $$;

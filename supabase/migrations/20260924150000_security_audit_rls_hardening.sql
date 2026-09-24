@@ -466,6 +466,7 @@ DROP POLICY IF EXISTS "categorias_despesa_insert" ON public.categorias_despesa;
 DROP POLICY IF EXISTS "categorias_despesa_update" ON public.categorias_despesa;
 DROP POLICY IF EXISTS "categorias_despesa_delete" ON public.categorias_despesa;
 
+DROP POLICY IF EXISTS "Permitir acesso para usuarios autenticados em tickets" ON public.tickets;
 DROP POLICY IF EXISTS "tickets_all" ON public.tickets;
 DROP POLICY IF EXISTS "tickets_select" ON public.tickets;
 DROP POLICY IF EXISTS "tickets_insert" ON public.tickets; -- REMOÇÃO CRÍTICA DA POLICY COM WITH CHECK (true)
@@ -490,6 +491,8 @@ DROP POLICY IF EXISTS "caixa_movimentos_insert" ON public.caixa_movimentos;
 DROP POLICY IF EXISTS "caixa_movimentos_update" ON public.caixa_movimentos;
 DROP POLICY IF EXISTS "caixa_movimentos_delete" ON public.caixa_movimentos;
 
+DROP POLICY IF EXISTS "Admins podem visualizar toda atividade" ON public.user_activity_daily;
+DROP POLICY IF EXISTS "Usuarios registram seu proprio ping" ON public.user_activity_daily;
 DROP POLICY IF EXISTS "Admins registram atividade" ON public.user_activity_daily;
 DROP POLICY IF EXISTS "Usuarios veem a propria atividade" ON public.user_activity_daily;
 DROP POLICY IF EXISTS "activity_select" ON public.user_activity_daily;
