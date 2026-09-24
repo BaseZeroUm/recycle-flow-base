@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { Printer } from "lucide-react";
 import { PageHeader, StatCard } from "@/components/PageHeader";
 import { brl } from "@/lib/format";
-import { imprimirRelatorio } from "@/lib/impressao";
+import { escapeHtml, imprimirRelatorio } from "@/lib/impressao";
 import { calcularSaldos, useCategorias, useLancamentos, useMateriais, useMovimentacoes } from "@/lib/dados";
 import { podeFinanceiro, useSessao } from "@/hooks/use-sessao";
 import { Button } from "@/components/ui/button";
@@ -106,7 +106,7 @@ function Dre() {
     const corpo = `<table><tbody>${linhas
       .map(
         (l) =>
-          `<tr${l.destaque ? ' style="font-weight:700;border-top:2px solid #111"' : ""}><td>${l.label}</td><td class="r">${brl(l.valor)}</td></tr>`,
+          `<tr${l.destaque ? ' style="font-weight:700;border-top:2px solid #111"' : ""}><td>${escapeHtml(l.label)}</td><td class="r">${brl(l.valor)}</td></tr>`,
       )
       .join("")}</tbody>
       <tfoot><tr><td>Margem líquida</td><td class="r">${margem.toFixed(1)}%</td></tr></tfoot></table>`;

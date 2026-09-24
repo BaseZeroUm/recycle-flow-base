@@ -21,8 +21,12 @@ export function TrialGate({ children }: { children: ReactNode }) {
   async function sair() {
     await queryClient.cancelQueries();
     queryClient.clear();
-    await supabase.auth.signOut();
-    navigate({ to: "/auth", replace: true });
+    await supabase.auth.signOut({ scope: "global" });
+    if (typeof window !== "undefined") {
+      window.location.href = "/auth";
+    } else {
+      navigate({ to: "/auth", replace: true });
+    }
   }
 
   return (

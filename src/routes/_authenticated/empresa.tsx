@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { PageHeader } from "@/components/PageHeader";
 import { ehAdmin, useSessao } from "@/hooks/use-sessao";
+import { sanitizarMensagemErro } from "@/lib/tratamento-erro";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -111,7 +112,10 @@ function Empresa() {
       queryClient.invalidateQueries({ queryKey: ["empresa"] });
       queryClient.invalidateQueries({ queryKey: ["sessao"] });
     },
-    onError: (e: Error) => toast.error("Erro ao salvar alterações", { description: e.message }),
+    onError: (e: Error) =>
+      toast.error("Erro ao salvar alterações", {
+        description: sanitizarMensagemErro(e),
+      }),
   });
 
   if (carregandoSessao || carregandoEmpresa) {

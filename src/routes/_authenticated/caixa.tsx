@@ -6,7 +6,7 @@ import { ArrowUpRight, ClipboardCheck, Printer, Unlock, Wallet } from "lucide-re
 import { supabase } from "@/integrations/supabase/client";
 import { PageHeader, StatCard } from "@/components/PageHeader";
 import { brl, dateBR } from "@/lib/format";
-import { imprimirRelatorio } from "@/lib/impressao";
+import { escapeHtml, imprimirRelatorio } from "@/lib/impressao";
 import {
   aberturaDoDia,
   comSaldos,
@@ -17,6 +17,7 @@ import {
   type CaixaMovimento,
 } from "@/lib/caixa";
 import { podeFinanceiro, useSessao } from "@/hooks/use-sessao";
+import { sanitizarMensagemErro } from "@/lib/tratamento-erro";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -54,7 +55,8 @@ export const Route = createFileRoute("/_authenticated/caixa")({
 function Caixa() {
   const queryClient = useQueryClient();
   const { data: sessao } = useSessao();
-  const { data: movs = [], isLoading } = useCaixaMovimentos(!!sessao);
+  const autorizado = podeFinanceiro(sessao);
+  const { data: movs = [], isLoading } = useCaixaMovimentos(autorizado);
 
   const [inicio, setInicio] = useState(hojeISO());
   const [fim, setFim] = useState(hojeISO());
@@ -105,7 +107,10 @@ function Caixa() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["caixa_movimentos"] });
     },
-    onError: (e: Error) => toast.error("Erro ao registrar no caixa", { description: e.message }),
+    onError: (e: Error) =>
+      toast.error("Erro ao registrar no caixa", {
+        description: sanitizarMensagemErro(e),
+      }),
   });
 
   async function confirmarAbertura() {
@@ -194,8 +199,8 @@ function Caixa() {
           .filter(({ mov }) => mov.data >= inicio && mov.data <= fim)
           .map(
             ({ mov, saldo: s }) =>
-              `<tr><td>${dateBR(mov.data)}</td><td>${rotuloTipo[mov.tipo]}</td><td>${
-                mov.descricao ?? "—"
+              `<tr><td>${dateBR(mov.data)}</td><td>${escapeHtml(rotuloTipo[mov.tipo])}</td><td>${
+                escapeHtml(mov.descricao ?? "—")
               }</td><td class="r">${brl(mov.valor)}</td><td class="r">${brl(s)}</td></tr>`,
           )
           .join("") || '<tr><td colspan="5">Nenhuma movimentação no período.</td></tr>'

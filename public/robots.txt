@@ -1,16 +1,17 @@
-User-agent: Googlebot
-Allow: /
-
-User-agent: Bingbot
-Allow: /
-
-User-agent: Twitterbot
-Allow: /
-
-User-agent: facebookexternalhit
-Allow: /
-
 User-agent: *
-Allow: /
+Allow: /$
+Allow: /assinatura$
+Disallow: /painel
+Disallow: /estoque
+Disallow: /caixa
+Disallow: /financeiro
+Disallow: /dre
+Disallow: /fluxo-de-caixa
+Disallow: /cadastros
+Disallow: /empresa
+Disallow: /usuarios
+Disallow: /redefinir-senha
+Disallow: /trial-expirado
+Disallow: /_authenticated/
 
 Sitemap: https://reciclagem.basezeroum.com.br/sitemap.xml

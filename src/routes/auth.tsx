@@ -137,8 +137,8 @@ function AuthPage() {
         // 5. Roteamento Inteligente por Segmento
         const isProdDomain =
           typeof window !== "undefined" &&
-          (window.location.hostname.endsWith("basezeroum.com.br") ||
-            window.location.hostname === "basezeroum.com.br");
+          (window.location.hostname === "basezeroum.com.br" ||
+            window.location.hostname.endsWith(".basezeroum.com.br"));
 
         switch (empresa?.categoria) {
           case "reciclagem":
@@ -171,7 +171,11 @@ function AuthPage() {
         }
       }
     } catch (err: any) {
-      toast.error("Não foi possível entrar", { description: err?.message });
+      const msg =
+        err?.message === "Invalid login credentials"
+          ? "E-mail ou senha incorretos."
+          : err?.message || "Ocorreu um erro ao entrar.";
+      toast.error("Não foi possível entrar", { description: msg });
     } finally {
       setLoading(false);
     }
@@ -226,14 +230,17 @@ function AuthPage() {
       });
 
       if (error) {
-        toast.error("Não foi possível criar a conta", { description: error.message });
+        const msg = error.message?.toLowerCase().includes("already registered")
+          ? "Este e-mail já possui cadastro. Faça login ou recupere sua senha."
+          : (error.message || "Erro ao processar cadastro.");
+        toast.error("Não foi possível criar a conta", { description: msg });
         return;
       }
 
       const isProdDomain =
         typeof window !== "undefined" &&
-        (window.location.hostname.endsWith("basezeroum.com.br") ||
-          window.location.hostname === "basezeroum.com.br");
+        (window.location.hostname === "basezeroum.com.br" ||
+          window.location.hostname.endsWith(".basezeroum.com.br"));
 
       // Redirecionamento pós-cadastro imediato
       if (data.session) {

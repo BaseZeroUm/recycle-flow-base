@@ -26,15 +26,22 @@ export function useSessao() {
 
       const { data: perfil } = await supabase
         .from("profiles")
-        .select("id, nome, email, empresa_id, empresas(razao_social, trial_ate, assinatura_ativa, categoria)")
+        .select("id, nome, email, empresa_id, ativo, desativado_em, empresas(razao_social, trial_ate, assinatura_ativa, categoria, ativa)")
         .eq("id", user.id)
         .maybeSingle();
 
       const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", user.id);
 
       const empresa = perfil?.empresas as
-        | { razao_social: string; trial_ate: string | null; assinatura_ativa: boolean; categoria?: string | null }
+        | { razao_social: string; trial_ate: string | null; assinatura_ativa: boolean; categoria?: string | null; ativa?: boolean }
         | null;
+
+      // Se a conta ou empresa estiver desativada/suspensa, desloga imediatamente
+      if (perfil?.ativo === false || perfil?.desativado_em || empresa?.ativa === false) {
+        await supabase.auth.signOut({ scope: "global" });
+        return null;
+      }
+
       const trialAte = empresa?.trial_ate ?? null;
       const assinaturaAtiva = empresa?.assinatura_ativa ?? false;
       const trialValido = !!trialAte && new Date(trialAte).getTime() > Date.now();
@@ -53,7 +60,7 @@ export function useSessao() {
         acessoLiberado: assinaturaAtiva || trialValido,
       };
     },
-    staleTime: 60_000,
+    staleTime: 30_000,
   });
 }
 

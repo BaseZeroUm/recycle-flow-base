@@ -8,6 +8,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { brl } from "@/lib/format";
 import { useCategorias, useCategoriasMaterial, useMateriais, useParceiros } from "@/lib/dados";
 import { useSessao } from "@/hooks/use-sessao";
+import { sanitizarMensagemErro } from "@/lib/tratamento-erro";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -88,7 +89,10 @@ function CategoriasMaterial() {
       queryClient.invalidateQueries({ queryKey: ["categorias_material"] });
       setNome("");
     },
-    onError: (e: Error) => toast.error("Erro ao salvar", { description: e.message }),
+    onError: (e: Error) =>
+      toast.error("Erro ao salvar", {
+        description: sanitizarMensagemErro(e),
+      }),
   });
 
   const remover = useMutation({
@@ -101,7 +105,10 @@ function CategoriasMaterial() {
       queryClient.invalidateQueries({ queryKey: ["categorias_material"] });
       queryClient.invalidateQueries({ queryKey: ["materiais"] });
     },
-    onError: (e: Error) => toast.error("Erro ao remover", { description: e.message }),
+    onError: (e: Error) =>
+      toast.error("Erro ao remover", {
+        description: sanitizarMensagemErro(e),
+      }),
   });
 
   return (
@@ -194,7 +201,10 @@ function Materiais() {
       setCompra("");
       setVenda("");
     },
-    onError: (e: Error) => toast.error("Erro ao salvar", { description: e.message }),
+    onError: (e: Error) =>
+      toast.error("Erro ao salvar", {
+        description: sanitizarMensagemErro(e),
+      }),
   });
 
   const alternarAtivo = useMutation({
@@ -203,7 +213,10 @@ function Materiais() {
       if (error) throw error;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["materiais"] }),
-    onError: (e: Error) => toast.error("Erro ao atualizar", { description: e.message }),
+    onError: (e: Error) =>
+      toast.error("Erro ao atualizar", {
+        description: sanitizarMensagemErro(e),
+      }),
   });
 
   const nomeCategoria = (id: string | null) => catMateriais.find((c) => c.id === id)?.nome ?? "—";
@@ -354,7 +367,10 @@ function Parceiros({ tabela, titulo }: { tabela: "fornecedores" | "clientes"; ti
       setTelefone("");
       setEmail("");
     },
-    onError: (e: Error) => toast.error("Erro ao salvar", { description: e.message }),
+    onError: (e: Error) =>
+      toast.error("Erro ao salvar", {
+        description: sanitizarMensagemErro(e),
+      }),
   });
 
   return (
@@ -458,7 +474,10 @@ function Categorias() {
       setAberto(false);
       setNome("");
     },
-    onError: (e: Error) => toast.error("Erro ao salvar", { description: e.message }),
+    onError: (e: Error) =>
+      toast.error("Erro ao salvar", {
+        description: sanitizarMensagemErro(e),
+      }),
   });
 
   return (

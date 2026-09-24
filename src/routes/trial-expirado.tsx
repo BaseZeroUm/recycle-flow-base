@@ -18,7 +18,7 @@ export const Route = createFileRoute("/trial-expirado")({
 
 export default function TrialExpirado() {
   async function sair() {
-    await supabase.auth.signOut();
+    await supabase.auth.signOut({ scope: "global" });
     window.location.href = "/auth";
   }
 

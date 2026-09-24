@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { PageHeader } from "@/components/PageHeader";
 import { ehAdmin, useSessao, type Papel } from "@/hooks/use-sessao";
+import { sanitizarMensagemErro } from "@/lib/tratamento-erro";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -68,7 +69,10 @@ function Usuarios() {
       queryClient.invalidateQueries({ queryKey: ["papeis"] });
       queryClient.invalidateQueries({ queryKey: ["sessao"] });
     },
-    onError: (e: Error) => toast.error("Erro ao atualizar", { description: e.message }),
+    onError: (e: Error) =>
+      toast.error("Erro ao atualizar", {
+        description: sanitizarMensagemErro(e),
+      }),
   });
 
   if (!admin) {

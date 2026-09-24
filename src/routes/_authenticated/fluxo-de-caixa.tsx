@@ -15,7 +15,7 @@ import {
 import { Printer } from "lucide-react";
 import { PageHeader, StatCard } from "@/components/PageHeader";
 import { brl, monthKey, monthLabel } from "@/lib/format";
-import { imprimirRelatorio } from "@/lib/impressao";
+import { escapeHtml, imprimirRelatorio } from "@/lib/impressao";
 import { useLancamentos } from "@/lib/dados";
 import { podeFinanceiro, useSessao } from "@/hooks/use-sessao";
 import { Button } from "@/components/ui/button";
@@ -87,7 +87,7 @@ function Fluxo() {
         linhas
           .map(
             (l) =>
-              `<tr><td>${l.label}</td><td class="r">${brl(l.entradas)}</td><td class="r">${brl(l.saidas)}</td><td class="r">${brl(l.saldo)}</td><td class="r"><b>${brl(l.acumulado)}</b></td></tr>`,
+              `<tr><td>${escapeHtml(l.label)}</td><td class="r">${brl(l.entradas)}</td><td class="r">${brl(l.saidas)}</td><td class="r">${brl(l.saldo)}</td><td class="r"><b>${brl(l.acumulado)}</b></td></tr>`,
           )
           .join("") || '<tr><td colspan="5">Nenhum movimento no período.</td></tr>'
       }</tbody>

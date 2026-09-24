@@ -15,7 +15,7 @@ import {
 import { ArrowDownRight, ArrowUpRight, Minus, Printer } from "lucide-react";
 import { PageHeader, StatCard } from "@/components/PageHeader";
 import { brl, monthLabel, num } from "@/lib/format";
-import { imprimirRelatorio } from "@/lib/impressao";
+import { escapeHtml, imprimirRelatorio } from "@/lib/impressao";
 import { Button } from "@/components/ui/button";
 import { useSessao } from "@/hooks/use-sessao";
 import {
@@ -237,14 +237,14 @@ function Producao() {
         margens
           .map(
             (m) =>
-              `<tr><td>${m.nome}</td><td class="r">${brl(m.precoCompra)}</td><td class="r">${brl(m.precoVenda)}</td><td class="r">${brl(m.margem)}</td><td class="r">${m.percentual === null ? "—" : `${m.percentual.toFixed(1)}%`}</td></tr>`,
+              `<tr><td>${escapeHtml(m.nome)}</td><td class="r">${brl(m.precoCompra)}</td><td class="r">${brl(m.precoVenda)}</td><td class="r">${brl(m.margem)}</td><td class="r">${m.percentual === null ? "—" : `${m.percentual.toFixed(1)}%`}</td></tr>`,
           )
           .join("") || '<tr><td colspan="5">Sem dados de compra/venda no período.</td></tr>'
       }</tbody></table>`;
     const top = (r: { total: number; itens: { nome: string; peso: number; share: number }[] }, tituloTop: string) =>
-      `<h2>${tituloTop}</h2><table><thead><tr><th>Parceiro</th><th class="r">Peso (kg)</th><th class="r">Participação</th></tr></thead><tbody>${
+      `<h2>${escapeHtml(tituloTop)}</h2><table><thead><tr><th>Parceiro</th><th class="r">Peso (kg)</th><th class="r">Participação</th></tr></thead><tbody>${
         r.itens
-          .map((x) => `<tr><td>${x.nome}</td><td class="r">${num(x.peso)}</td><td class="r">${x.share.toFixed(1)}%</td></tr>`)
+          .map((x) => `<tr><td>${escapeHtml(x.nome)}</td><td class="r">${num(x.peso)}</td><td class="r">${x.share.toFixed(1)}%</td></tr>`)
           .join("") || '<tr><td colspan="3">Sem movimentação.</td></tr>'
       }</tbody></table>`;
     imprimirRelatorio({

@@ -57,12 +57,16 @@ export function ModalDesativarConta({ userId, trigger }: ModalDesativarContaProp
       await queryClient.cancelQueries();
       queryClient.clear();
 
-      // 3. Encerramento da sessão (logout)
-      await supabase.auth.signOut();
+      // 3. Encerramento da sessão (logout global)
+      await supabase.auth.signOut({ scope: "global" });
 
-      // 4. Fechar modal e redirecionar para /auth
+      // 4. Fechar modal e redirecionar para /auth com expurgação completa
       setAberto(false);
-      navigate({ to: "/auth", replace: true });
+      if (typeof window !== "undefined") {
+        window.location.href = "/auth";
+      } else {
+        navigate({ to: "/auth", replace: true });
+      }
 
       // 5. Toast informativo sobre a desativação
       toast.info("Sua conta foi desativada com sucesso. Para reativá-la, entre em contato com o suporte.");

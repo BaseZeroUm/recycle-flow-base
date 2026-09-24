@@ -6,8 +6,8 @@ import { brokeredPreviewStorage } from './previewAuthStorage';
 // Verifica se está em produção no domínio da Base Zero Um para aplicar o cookie compartilhado
 const isProductionDomain =
   typeof window !== 'undefined' &&
-  (window.location.hostname.endsWith('basezeroum.com.br') ||
-    window.location.hostname === 'basezeroum.com.br');
+  (window.location.hostname === 'basezeroum.com.br' ||
+    window.location.hostname.endsWith('.basezeroum.com.br'));
 
 export const cookieOptions = {
   domain: isProductionDomain ? '.basezeroum.com.br' : undefined,
@@ -38,10 +38,11 @@ function setRawCookie(name: string, value: string) {
 function deleteRawCookie(name: string) {
   if (typeof document === 'undefined') return;
   const domainPart = cookieOptions.domain ? `; domain=${cookieOptions.domain}` : '';
-  document.cookie = `${encodeURIComponent(name)}=${domainPart}; path=/; max-age=0; SameSite=${cookieOptions.sameSite}`;
-  if (cookieOptions.domain) {
-    document.cookie = `${encodeURIComponent(name)}=; path=/; max-age=0; SameSite=${cookieOptions.sameSite}`;
-  }
+  const securePart = cookieOptions.secure ? '; Secure' : '';
+  const expired = '; expires=Thu, 01 Jan 1970 00:00:00 GMT; max-age=0';
+  document.cookie = `${encodeURIComponent(name)}=; path=/${domainPart}${expired}; SameSite=${cookieOptions.sameSite}${securePart}`;
+  // Também limpa escopo host-only caso tenha sido gravado sem domain
+  document.cookie = `${encodeURIComponent(name)}=; path=/${expired}; SameSite=${cookieOptions.sameSite}${securePart}`;
 }
 
 const CHUNK_SIZE = 3000;

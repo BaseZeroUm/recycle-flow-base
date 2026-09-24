@@ -48,6 +48,9 @@ function Redefinir() {
 
       if (event === "PASSWORD_RECOVERY" || Boolean(session)) {
         setSessaoValida(true);
+        if (typeof window !== "undefined" && (window.location.hash || window.location.search)) {
+          window.history.replaceState(null, "", window.location.pathname);
+        }
       }
       setChecandoSessao(false);
     });
@@ -59,6 +62,9 @@ function Redefinir() {
       if (session) {
         setSessaoValida(true);
         setChecandoSessao(false);
+        if (typeof window !== "undefined" && (window.location.hash || window.location.search)) {
+          window.history.replaceState(null, "", window.location.pathname);
+        }
       } else if (!hasAuthParams) {
         // Se não há parâmetros de autenticação na URL, encerramos a checagem
         setChecandoSessao(false);

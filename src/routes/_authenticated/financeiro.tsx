@@ -6,9 +6,10 @@ import { Check, Plus, Printer } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { PageHeader, StatCard } from "@/components/PageHeader";
 import { brl, dateBR } from "@/lib/format";
-import { imprimirRelatorio } from "@/lib/impressao";
+import { escapeHtml, imprimirRelatorio } from "@/lib/impressao";
 import { useCategorias, useLancamentos } from "@/lib/dados";
 import { podeFinanceiro, useSessao } from "@/hooks/use-sessao";
+import { sanitizarMensagemErro } from "@/lib/tratamento-erro";
 import { aberturaDoDia, saldoAtual, useCaixaMovimentos } from "@/lib/caixa";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -109,7 +110,10 @@ function Financeiro() {
       setValor("");
       setPagarComCaixa("nao");
     },
-    onError: (e: Error) => toast.error("Erro ao salvar", { description: e.message }),
+    onError: (e: Error) =>
+      toast.error("Erro ao salvar", {
+        description: sanitizarMensagemErro(e),
+      }),
   });
 
   const baixar = useMutation({
@@ -124,7 +128,10 @@ function Financeiro() {
       toast.success("Baixa registrada");
       queryClient.invalidateQueries({ queryKey: ["lancamentos"] });
     },
-    onError: (e: Error) => toast.error("Erro na baixa", { description: e.message }),
+    onError: (e: Error) =>
+      toast.error("Erro na baixa", {
+        description: sanitizarMensagemErro(e),
+      }),
   });
 
   if (!autorizado) {
@@ -162,13 +169,13 @@ function Financeiro() {
       const linhas = lista
         .map(
           (l) =>
-            `<tr><td>${dateBR(l.data_vencimento)}</td><td>${l.descricao}</td><td>${
-              categorias.find((c) => c.id === l.categoria_id)?.nome ?? "—"
-            }</td><td>${statusTexto(l)}</td><td class="r">${brl(l.valor)}</td></tr>`,
+            `<tr><td>${dateBR(l.data_vencimento)}</td><td>${escapeHtml(l.descricao)}</td><td>${escapeHtml(
+              categorias.find((c) => c.id === l.categoria_id)?.nome ?? "—",
+            )}</td><td>${escapeHtml(statusTexto(l))}</td><td class="r">${brl(l.valor)}</td></tr>`,
         )
         .join("");
       const total = lista.reduce((s, l) => s + Number(l.valor), 0);
-      return `<h2>${tituloAba}</h2>
+      return `<h2>${escapeHtml(tituloAba)}</h2>
         <table><thead><tr><th>Vencimento</th><th>Descrição</th><th>Categoria</th><th>Status</th><th class="r">Valor</th></tr></thead>
         <tbody>${linhas || '<tr><td colspan="5">Nenhum lançamento.</td></tr>'}</tbody>
         <tfoot><tr><td colspan="4">Total (${lista.length})</td><td class="r">${brl(total)}</td></tr></tfoot></table>`;

@@ -14,6 +14,17 @@ const ESTILO = `
   @page{size:A4;margin:14mm}
 `;
 
+/** Função de escape de caracteres HTML para prevenir Stored e Reflected XSS em impressões e relatórios */
+export function escapeHtml(value: unknown): string {
+  if (value === null || value === undefined) return "";
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 /** Abre uma janela de impressão A4 (o usuário pode salvar como PDF no diálogo do navegador). */
 export function imprimirRelatorio({
   titulo,
@@ -26,11 +37,14 @@ export function imprimirRelatorio({
   corpo: string;
   nomeArquivo?: string;
 }) {
+  const safeTitulo = escapeHtml(titulo);
+  const safeSubtitulo = subtitulo ? escapeHtml(subtitulo) : `Emitido em ${new Date().toLocaleString("pt-BR")}`;
+  const safeNomeArquivo = escapeHtml(nomeArquivo ?? titulo);
   const html = `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
-    <title>${nomeArquivo ?? titulo}-${new Date().toISOString().slice(0, 10)}</title>
+    <title>${safeNomeArquivo}-${new Date().toISOString().slice(0, 10)}</title>
     <style>${ESTILO}</style></head><body>
-    <h1>${titulo}</h1>
-    <p>${subtitulo ?? `Emitido em ${new Date().toLocaleString("pt-BR")}`}</p>
+    <h1>${safeTitulo}</h1>
+    <p>${safeSubtitulo}</p>
     ${corpo}
     <script>window.onload=function(){window.print()}<\/script>
     </body></html>`;

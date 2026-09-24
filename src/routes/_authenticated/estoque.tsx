@@ -7,6 +7,7 @@ import { toPng } from "html-to-image";
 import { supabase } from "@/integrations/supabase/client";
 import { PageHeader, StatCard } from "@/components/PageHeader";
 import { brl, dateBR, num } from "@/lib/format";
+import { escapeHtml, imprimirRelatorio } from "@/lib/impressao";
 import {
   calcularSaldos,
   useCategoriasMaterial,
@@ -16,6 +17,7 @@ import {
   type Movimentacao,
 } from "@/lib/dados";
 import { podeFinanceiro, useSessao } from "@/hooks/use-sessao";
+import { sanitizarMensagemErro } from "@/lib/tratamento-erro";
 import { aberturaDoDia, saldoAtual, useCaixaMovimentos } from "@/lib/caixa";
 import { TicketPesagem, textoWhatsApp, type DadosTicket } from "@/components/TicketPesagem";
 import { TicketAgrupado, textoWhatsAppAgrupado } from "@/components/TicketAgrupado";
@@ -76,9 +78,15 @@ function Estoque() {
   const { data: fornecedores = [] } = useParceiros("fornecedores");
   const { data: clientes = [] } = useParceiros("clientes");
   const { data: empresa } = useQuery({
-    queryKey: ["empresa"],
+    queryKey: ["empresa", sessao?.empresaId],
+    enabled: !!sessao?.empresaId,
     queryFn: async () => {
-      const { data, error } = await supabase.from("empresas").select("*").limit(1).maybeSingle();
+      if (!sessao?.empresaId) return null;
+      const { data, error } = await supabase
+        .from("empresas")
+        .select("razao_social, cnpj, telefone")
+        .eq("id", sessao.empresaId)
+        .maybeSingle();
       if (error) throw error;
       return data;
     },
@@ -330,7 +338,10 @@ function Estoque() {
       setNovoParceiro("");
       setTicketAberto(movsCriadas);
     },
-    onError: (e: Error) => toast.error("Erro ao registrar", { description: e.message }),
+    onError: (e: Error) =>
+      toast.error("Erro ao registrar", {
+        description: sanitizarMensagemErro(e),
+      }),
   });
 
   // Abre o ticket com todos os itens agrupados (mesmo ticket_id)
@@ -369,7 +380,10 @@ function Estoque() {
       queryClient.invalidateQueries({ queryKey: ["caixa_movimentos"] });
       setTicketAberto(null);
     },
-    onError: (e: Error) => toast.error("Erro ao excluir", { description: e.message }),
+    onError: (e: Error) =>
+      toast.error("Erro ao excluir", {
+        description: sanitizarMensagemErro(e),
+      }),
   });
 
   function confirmarExclusao(m: Movimentacao) {
@@ -458,44 +472,27 @@ function Estoque() {
     const linhas = filtrados
       .map((m) => {
         const mat = materiais.find((x) => x.id === m.material_id)?.nome ?? "—";
-        return `<tr><td>#${m.numero_ticket ?? "—"}</td><td>${dateBR(m.data)}</td><td>${
+        return `<tr><td>#${escapeHtml(m.numero_ticket ?? "—")}</td><td>${dateBR(m.data)}</td><td>${
           m.tipo === "entrada" ? "Entrada" : "Saída"
-        }</td><td>${mat}</td><td>${nomeParceiro(m)}</td><td class="r">${num(m.quantidade)}</td><td class="r">${brl(
+        }</td><td>${escapeHtml(mat)}</td><td>${escapeHtml(nomeParceiro(m))}</td><td class="r">${num(m.quantidade)}</td><td class="r">${brl(
           m.valor_total,
         )}</td></tr>`;
       })
       .join("");
     const totalValor = filtrados.reduce((s2, m) => s2 + Number(m.valor_total), 0);
     const totalPeso = filtrados.reduce((s2, m) => s2 + Number(m.quantidade), 0);
-    const html = `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
-      <title>Movimentacoes-${new Date().toISOString().slice(0, 10)}</title>
-      <style>
-        body{font-family:ui-sans-serif,system-ui,Arial,sans-serif;color:#111;margin:24px}
-        h1{font-size:18px;margin:0 0 4px}
-        p{font-size:12px;color:#555;margin:0 0 16px}
-        table{width:100%;border-collapse:collapse;font-size:12px}
-        th,td{border-bottom:1px solid #ddd;padding:6px 8px;text-align:left}
-        th{background:#f3f4f6}
-        .r{text-align:right}
-        tfoot td{font-weight:700;border-top:2px solid #111}
-        @page{size:A4;margin:14mm}
-      </style></head><body>
-      <h1>${empresa?.razao_social ?? sessao?.empresaNome ?? "Empresa"} — Movimentações e tickets</h1>
-      <p>Emitido em ${new Date().toLocaleString("pt-BR")}${busca ? ` · filtro: "${busca}"` : ""}</p>
-      <table><thead><tr><th>Ticket</th><th>Data</th><th>Tipo</th><th>Material</th><th>Fornecedor / cliente</th><th class="r">Peso líq.</th><th class="r">Valor</th></tr></thead>
+    const corpo = `<table><thead><tr><th>Ticket</th><th>Data</th><th>Tipo</th><th>Material</th><th>Fornecedor / cliente</th><th class="r">Peso líq.</th><th class="r">Valor</th></tr></thead>
       <tbody>${linhas || '<tr><td colspan="7">Nenhuma movimentação.</td></tr>'}</tbody>
       <tfoot><tr><td colspan="5">Total (${filtrados.length})</td><td class="r">${num(totalPeso)}</td><td class="r">${brl(
         totalValor,
-      )}</td></tr></tfoot></table>
-      <script>window.onload=function(){window.print()}<\/script>
-      </body></html>`;
-    const w = window.open("", "_blank", "noopener,width=900,height=700");
-    if (!w) {
-      toast.error("Permita pop-ups para gerar o PDF");
-      return;
-    }
-    w.document.write(html);
-    w.document.close();
+      )}</td></tr></tfoot></table>`;
+
+    imprimirRelatorio({
+      titulo: `${empresa?.razao_social ?? sessao?.empresaNome ?? "Empresa"} — Movimentações e tickets`,
+      nomeArquivo: "Movimentacoes",
+      subtitulo: `Emitido em ${new Date().toLocaleString("pt-BR")}${busca ? ` · filtro: "${busca}"` : ""}`,
+      corpo,
+    });
   }
 
   const valorEstoque = saldos.reduce((s, x) => s + x.valorEstoque, 0);
