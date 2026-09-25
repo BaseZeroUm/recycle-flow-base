@@ -78,7 +78,6 @@ function AuthPage() {
               id,
               ativa,
               categoria,
-              plano,
               trial_ate,
               assinatura_ativa
             )

@@ -36,7 +36,6 @@ import {
 } from "@/lib/dados";
 import { podeFinanceiro, useSessao } from "@/hooks/use-sessao";
 import { FiltroPeriodo, hojeIso, inicioDoMesAtual } from "@/components/FiltroPeriodo";
-import { AdegaDashboardPlaceholder } from "@/components/AdegaDashboardPlaceholder";
 
 export const Route = createFileRoute("/_authenticated/painel")({
   head: () => ({
@@ -52,7 +51,6 @@ export const Route = createFileRoute("/_authenticated/painel")({
 
 function Painel() {
   const { data: sessao } = useSessao();
-  const isAdega = sessao?.empresaCategoria === "adega";
 
   const [de, setDe] = useState(inicioDoMesAtual());
   const [ate, setAte] = useState(hojeIso());
@@ -63,10 +61,6 @@ function Painel() {
   const { data: categorias = [] } = useCategorias();
   const { data: fornecedores = [] } = useParceiros("fornecedores");
   const { data: clientes = [] } = useParceiros("clientes");
-
-  if (isAdega) {
-    return <AdegaDashboardPlaceholder empresaNome={sessao?.empresaNome ?? "Minha Adega"} />;
-  }
 
   const movsPeriodo = movs.filter((m) => m.data >= de && m.data <= ate);
   const lancsPeriodo = lancs.filter((l) => l.data_vencimento >= de && l.data_vencimento <= ate);
