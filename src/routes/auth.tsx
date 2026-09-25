@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Eye, EyeOff } from "lucide-react";
 import { validatePassword } from "@/lib/password-validator";
 import { PasswordRequirements } from "@/components/PasswordRequirements";
+import { normalizarSegmento, rotaInicial } from "@/lib/segmento";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
