@@ -199,6 +199,7 @@ export type Database = {
         Row: {
           assinatura_ativa: boolean
           ativa: boolean
+          categoria: string
           cnpj: string | null
           created_at: string
           email: string | null
@@ -213,6 +214,7 @@ export type Database = {
         Insert: {
           assinatura_ativa?: boolean
           ativa?: boolean
+          categoria?: string
           cnpj?: string | null
           created_at?: string
           email?: string | null
@@ -227,6 +229,7 @@ export type Database = {
         Update: {
           assinatura_ativa?: boolean
           ativa?: boolean
+          categoria?: string
           cnpj?: string | null
           created_at?: string
           email?: string | null
@@ -529,6 +532,7 @@ export type Database = {
         Row: {
           ativo: boolean
           created_at: string
+          desativado_em: string | null
           email: string
           empresa_id: string
           id: string
@@ -538,6 +542,7 @@ export type Database = {
         Insert: {
           ativo?: boolean
           created_at?: string
+          desativado_em?: string | null
           email: string
           empresa_id: string
           id: string
@@ -547,6 +552,7 @@ export type Database = {
         Update: {
           ativo?: boolean
           created_at?: string
+          desativado_em?: string | null
           email?: string
           empresa_id?: string
           id?: string
