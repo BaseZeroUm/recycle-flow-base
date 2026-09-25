@@ -127,3 +127,15 @@ export function formatarTempoTrial(
   const status = calcularStatusTrial(trialAte, agora);
   return status ? status.texto : null;
 }
+
+export const WHATSAPP_SUPORTE_NUMERO = "5511911380734";
+
+export const WHATSAPP_MENSAGEM_TRIAL_EXPIRADO =
+  "Olá! Meu teste do Base 01 Reciclagem terminou, quero assinar.";
+
+export function getLinkWhatsAppTrialExpirado(): string {
+  return `https://wa.me/${WHATSAPP_SUPORTE_NUMERO}?text=${encodeURIComponent(
+    WHATSAPP_MENSAGEM_TRIAL_EXPIRADO
+  )}`;
+}
+

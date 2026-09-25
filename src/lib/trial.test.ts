@@ -1,6 +1,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { calcularStatusTrial, formatarTempoTrial } from "./trial.ts";
+import {
+  calcularStatusTrial,
+  formatarTempoTrial,
+  WHATSAPP_SUPORTE_NUMERO,
+  WHATSAPP_MENSAGEM_TRIAL_EXPIRADO,
+  getLinkWhatsAppTrialExpirado,
+} from "./trial.ts";
 
 test("deve retornar null para valores nulos, vazios ou inválidos", () => {
   assert.equal(calcularStatusTrial(null), null);
@@ -106,3 +112,23 @@ test("deve formatar corretamente para tempo < 1 dia (< 24h)", () => {
   assert.equal(status30s?.texto, "Menos de 1 minuto restante");
   assert.equal(status30s?.textoCurto, "< 1min");
 });
+
+test("deve validar link e número de WhatsApp para expiração do período gratuito", () => {
+  // O número de telefone deve ser exatamente 5511911380734 sem caracteres extras
+  assert.equal(WHATSAPP_SUPORTE_NUMERO, "5511911380734");
+  assert.match(WHATSAPP_SUPORTE_NUMERO, /^[0-9]+$/);
+  assert.equal(WHATSAPP_SUPORTE_NUMERO.length, 13);
+
+  const url = getLinkWhatsAppTrialExpirado();
+  assert.ok(url.startsWith("https://wa.me/5511911380734?text="));
+  assert.ok(url.includes(encodeURIComponent(WHATSAPP_MENSAGEM_TRIAL_EXPIRADO)));
+
+  // Valida que o parse da URL é válido
+  const parsed = new URL(url);
+  assert.equal(parsed.protocol, "https:");
+  assert.equal(parsed.hostname, "wa.me");
+  assert.equal(parsed.pathname, "/5511911380734");
+  assert.equal(parsed.searchParams.get("text"), WHATSAPP_MENSAGEM_TRIAL_EXPIRADO);
+});
+
+
