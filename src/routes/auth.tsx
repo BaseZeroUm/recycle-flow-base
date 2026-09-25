@@ -134,41 +134,8 @@ function AuthPage() {
           }
         }
 
-        // 5. Roteamento Inteligente por Segmento
-        const isProdDomain =
-          typeof window !== "undefined" &&
-          (window.location.hostname === "basezeroum.com.br" ||
-            window.location.hostname.endsWith(".basezeroum.com.br"));
-
-        switch (empresa?.categoria) {
-          case "reciclagem":
-            navigate({ to: "/painel", replace: true });
-            break;
-
-          case "adega":
-            if (isProdDomain) {
-              window.location.href = "https://adega.basezeroum.com.br";
-            } else {
-              navigate({ to: "/painel", replace: true });
-            }
-            break;
-
-          case "admin":
-            if (isProdDomain) {
-              window.location.href = "https://admin.basezeroum.com.br";
-            } else {
-              navigate({ to: "/painel", replace: true });
-            }
-            break;
-
-          case "multi":
-            navigate({ to: "/selecao-modulo" as any, replace: true });
-            break;
-
-          default:
-            navigate({ to: "/painel", replace: true });
-            break;
-        }
+        // 5. Roteamento por segmento da empresa (fonte: empresas.categoria)
+        navigate({ to: rotaInicial(normalizarSegmento(empresa?.categoria)), replace: true });
       }
     } catch (err: any) {
       const msg =
