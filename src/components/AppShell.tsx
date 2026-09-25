@@ -13,7 +13,16 @@ import {
   Wallet,
   LineChart,
   Factory,
+  ShoppingCart,
+  Package,
+  Warehouse,
+  Truck,
+  Users,
+  PieChart,
+  Settings,
 } from "lucide-react";
+import { useRouteContext } from "@tanstack/react-router";
+import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { LogoFull, LogoIcon } from "@/components/Logo";
 import { ehAdmin, podeFinanceiro, useSessao } from "@/hooks/use-sessao";
@@ -33,7 +42,42 @@ import {
 import { Button } from "@/components/ui/button";
 import { TrialContador } from "@/components/TrialContador";
 
-type Item = { title: string; url: string; icon: typeof Boxes; acesso: "todos" | "financeiro" | "admin" };
+type Item = {
+  title: string;
+  url: string;
+  icon: typeof Boxes;
+  acesso: "todos" | "financeiro" | "admin";
+  /** Ainda não disponível: aparece no menu sem link. */
+  emBreve?: boolean;
+};
+
+const breve = (title: string, icon: typeof Boxes, acesso: Item["acesso"] = "todos"): Item => ({
+  title,
+  url: `#${title}`,
+  icon,
+  acesso,
+  emBreve: true,
+});
+
+const gruposAdega: { label: string; itens: Item[] }[] = [
+  { label: "Análise", itens: [{ title: "Painel", url: "/adega", icon: LayoutDashboard, acesso: "todos" }, breve("Analytics", PieChart)] },
+  { label: "Vendas", itens: [breve("PDV / Nova venda", ShoppingCart), breve("Vendas", ShoppingCart), breve("Comandas", FileSpreadsheet), breve("Mesas", LayoutDashboard)] },
+  { label: "Produtos", itens: [breve("Produtos", Package), breve("Categorias", Boxes), breve("Fichas técnicas", FileSpreadsheet)] },
+  { label: "Estoque", itens: [breve("Estoque", Warehouse), breve("Movimentações", Boxes), breve("Inventário", BarChart3), breve("Perdas", Boxes)] },
+  { label: "Compras", itens: [breve("Compras", Truck), breve("Fornecedores", Truck)] },
+  {
+    label: "Financeiro",
+    itens: [
+      breve("Caixa", Banknote, "financeiro"),
+      breve("Contas a pagar", Wallet, "financeiro"),
+      breve("Contas a receber", Wallet, "financeiro"),
+      breve("Fluxo de caixa", LineChart, "financeiro"),
+      breve("DRE", FileSpreadsheet, "financeiro"),
+    ],
+  },
+  { label: "Clientes", itens: [breve("Clientes", Users), breve("CRM", Users)] },
+  { label: "Configurações", itens: [{ title: "Empresa", url: "/empresa", icon: Settings, acesso: "todos" }] },
+];
 
 const grupos: { label: string; itens: Item[] }[] = [
   {
@@ -67,6 +111,8 @@ function AppSidebar() {
   const collapsed = state === "collapsed";
   const path = useRouterState({ select: (r) => r.location.pathname });
   const { data: sessao } = useSessao();
+  const { segmento } = useRouteContext({ from: "/_authenticated" });
+  const menu = segmento === "adega" ? gruposAdega : grupos;
 
   const visivel = (item: Item) =>
     item.acesso === "todos" ||
@@ -79,7 +125,7 @@ function AppSidebar() {
         <div className="flex h-16 items-center px-3">
           {collapsed ? <LogoIcon className="h-8 w-8" /> : <LogoFull />}
         </div>
-        {grupos.map((g) => {
+        {menu.map((g) => {
           const itens = g.itens.filter(visivel);
           if (!itens.length) return null;
           return (
@@ -89,12 +135,24 @@ function AppSidebar() {
                 <SidebarMenu>
                   {itens.map((item) => (
                     <SidebarMenuItem key={item.url}>
+                      {item.emBreve ? (
+                        <SidebarMenuButton aria-disabled="true" disabled className="cursor-not-allowed opacity-60" tooltip={`${item.title} (em breve)`}>
+                          <item.icon className="h-4 w-4" />
+                          {!collapsed && (
+                            <span className="flex flex-1 items-center justify-between gap-2">
+                              {item.title}
+                              <Badge variant="outline" className="text-[10px]">Em breve</Badge>
+                            </span>
+                          )}
+                        </SidebarMenuButton>
+                      ) : (
                       <SidebarMenuButton asChild isActive={path === item.url}>
                         <Link to={item.url} className="flex items-center gap-2">
                           <item.icon className="h-4 w-4" />
                           {!collapsed && <span>{item.title}</span>}
                         </Link>
                       </SidebarMenuButton>
+                      )}
                     </SidebarMenuItem>
                   ))}
                 </SidebarMenu>

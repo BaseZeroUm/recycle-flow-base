@@ -25,7 +25,9 @@ import { Route as AuthenticatedFinanceiroRouteImport } from './routes/_authentic
 import { Route as AuthenticatedFluxoDeCaixaRouteImport } from './routes/_authenticated/fluxo-de-caixa'
 import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
 import { Route as AuthenticatedProducaoRouteImport } from './routes/_authenticated/producao'
+import { Route as AuthenticatedReciclagemRouteImport } from './routes/_authenticated/reciclagem'
 import { Route as AuthenticatedUsuariosRouteImport } from './routes/_authenticated/usuarios'
+import { Route as AuthenticatedAdegaIndexRouteImport } from './routes/_authenticated/adega/index'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -107,9 +109,19 @@ const AuthenticatedProducaoRoute = AuthenticatedProducaoRouteImport.update({
   path: '/producao',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedReciclagemRoute = AuthenticatedReciclagemRouteImport.update({
+  id: '/reciclagem',
+  path: '/reciclagem',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedUsuariosRoute = AuthenticatedUsuariosRouteImport.update({
   id: '/usuarios',
   path: '/usuarios',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAdegaIndexRoute = AuthenticatedAdegaIndexRouteImport.update({
+  id: '/adega/',
+  path: '/adega/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 
@@ -129,7 +141,9 @@ export interface FileRoutesByFullPath {
   '/fluxo-de-caixa': typeof AuthenticatedFluxoDeCaixaRoute
   '/painel': typeof AuthenticatedPainelRoute
   '/producao': typeof AuthenticatedProducaoRoute
+  '/reciclagem': typeof AuthenticatedReciclagemRoute
   '/usuarios': typeof AuthenticatedUsuariosRoute
+  '/adega/': typeof AuthenticatedAdegaIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -147,7 +161,9 @@ export interface FileRoutesByTo {
   '/fluxo-de-caixa': typeof AuthenticatedFluxoDeCaixaRoute
   '/painel': typeof AuthenticatedPainelRoute
   '/producao': typeof AuthenticatedProducaoRoute
+  '/reciclagem': typeof AuthenticatedReciclagemRoute
   '/usuarios': typeof AuthenticatedUsuariosRoute
+  '/adega': typeof AuthenticatedAdegaIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -167,7 +183,9 @@ export interface FileRoutesById {
   '/_authenticated/fluxo-de-caixa': typeof AuthenticatedFluxoDeCaixaRoute
   '/_authenticated/painel': typeof AuthenticatedPainelRoute
   '/_authenticated/producao': typeof AuthenticatedProducaoRoute
+  '/_authenticated/reciclagem': typeof AuthenticatedReciclagemRoute
   '/_authenticated/usuarios': typeof AuthenticatedUsuariosRoute
+  '/_authenticated/adega/': typeof AuthenticatedAdegaIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -187,7 +205,9 @@ export interface FileRouteTypes {
     | '/fluxo-de-caixa'
     | '/painel'
     | '/producao'
+    | '/reciclagem'
     | '/usuarios'
+    | '/adega/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -205,7 +225,9 @@ export interface FileRouteTypes {
     | '/fluxo-de-caixa'
     | '/painel'
     | '/producao'
+    | '/reciclagem'
     | '/usuarios'
+    | '/adega'
   id:
     | '__root__'
     | '/'
@@ -224,7 +246,9 @@ export interface FileRouteTypes {
     | '/_authenticated/fluxo-de-caixa'
     | '/_authenticated/painel'
     | '/_authenticated/producao'
+    | '/_authenticated/reciclagem'
     | '/_authenticated/usuarios'
+    | '/_authenticated/adega/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -351,11 +375,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProducaoRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/reciclagem': {
+      id: '/_authenticated/reciclagem'
+      path: '/reciclagem'
+      fullPath: '/reciclagem'
+      preLoaderRoute: typeof AuthenticatedReciclagemRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/usuarios': {
       id: '/_authenticated/usuarios'
       path: '/usuarios'
       fullPath: '/usuarios'
       preLoaderRoute: typeof AuthenticatedUsuariosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/adega/': {
+      id: '/_authenticated/adega/'
+      path: '/adega'
+      fullPath: '/adega/'
+      preLoaderRoute: typeof AuthenticatedAdegaIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
   }
@@ -371,7 +409,9 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedFluxoDeCaixaRoute: typeof AuthenticatedFluxoDeCaixaRoute
   AuthenticatedPainelRoute: typeof AuthenticatedPainelRoute
   AuthenticatedProducaoRoute: typeof AuthenticatedProducaoRoute
+  AuthenticatedReciclagemRoute: typeof AuthenticatedReciclagemRoute
   AuthenticatedUsuariosRoute: typeof AuthenticatedUsuariosRoute
+  AuthenticatedAdegaIndexRoute: typeof AuthenticatedAdegaIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -384,7 +424,9 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedFluxoDeCaixaRoute: AuthenticatedFluxoDeCaixaRoute,
   AuthenticatedPainelRoute: AuthenticatedPainelRoute,
   AuthenticatedProducaoRoute: AuthenticatedProducaoRoute,
+  AuthenticatedReciclagemRoute: AuthenticatedReciclagemRoute,
   AuthenticatedUsuariosRoute: AuthenticatedUsuariosRoute,
+  AuthenticatedAdegaIndexRoute: AuthenticatedAdegaIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
