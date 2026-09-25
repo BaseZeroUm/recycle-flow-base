@@ -8,3 +8,5 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Segmento do tenant = `empresas.categoria` (reciclagem|adega), guardado por trigger; o guard de `_authenticated/route.tsx` + `src/lib/segmento.ts` decide as rotas — uma única fonte de verdade, com hostname apenas como dica.
