@@ -199,7 +199,7 @@ export type Database = {
         Row: {
           assinatura_ativa: boolean
           ativa: boolean
-          categoria: string | null
+          categoria: string
           cnpj: string | null
           created_at: string
           email: string | null
@@ -208,13 +208,13 @@ export type Database = {
           nome_fantasia: string | null
           razao_social: string
           telefone: string | null
-          trial_ate: string | null
+          trial_ate: string
           updated_at: string
         }
         Insert: {
           assinatura_ativa?: boolean
           ativa?: boolean
-          categoria?: string | null
+          categoria?: string
           cnpj?: string | null
           created_at?: string
           email?: string | null
@@ -223,13 +223,13 @@ export type Database = {
           nome_fantasia?: string | null
           razao_social: string
           telefone?: string | null
-          trial_ate?: string | null
+          trial_ate?: string
           updated_at?: string
         }
         Update: {
           assinatura_ativa?: boolean
           ativa?: boolean
-          categoria?: string | null
+          categoria?: string
           cnpj?: string | null
           created_at?: string
           email?: string | null
@@ -238,7 +238,7 @@ export type Database = {
           nome_fantasia?: string | null
           razao_social?: string
           telefone?: string | null
-          trial_ate?: string | null
+          trial_ate?: string
           updated_at?: string
         }
         Relationships: []
@@ -532,6 +532,7 @@ export type Database = {
         Row: {
           ativo: boolean
           created_at: string
+          desativado_em: string | null
           email: string
           empresa_id: string
           id: string
@@ -541,6 +542,7 @@ export type Database = {
         Insert: {
           ativo?: boolean
           created_at?: string
+          desativado_em?: string | null
           email: string
           empresa_id: string
           id: string
@@ -550,6 +552,7 @@ export type Database = {
         Update: {
           ativo?: boolean
           created_at?: string
+          desativado_em?: string | null
           email?: string
           empresa_id?: string
           id?: string
