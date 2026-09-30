@@ -26,6 +26,7 @@ import { Route as AuthenticatedFluxoDeCaixaRouteImport } from './routes/_authent
 import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
 import { Route as AuthenticatedProducaoRouteImport } from './routes/_authenticated/producao'
 import { Route as AuthenticatedUsuariosRouteImport } from './routes/_authenticated/usuarios'
+import { Route as ApiVerificarEmailRouteImport } from './routes/api/verificar-email'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -112,6 +113,11 @@ const AuthenticatedUsuariosRoute = AuthenticatedUsuariosRouteImport.update({
   path: '/usuarios',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiVerificarEmailRoute = ApiVerificarEmailRouteImport.update({
+  id: '/api/verificar-email',
+  path: '/api/verificar-email',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -130,6 +136,7 @@ export interface FileRoutesByFullPath {
   '/painel': typeof AuthenticatedPainelRoute
   '/producao': typeof AuthenticatedProducaoRoute
   '/usuarios': typeof AuthenticatedUsuariosRoute
+  '/api/verificar-email': typeof ApiVerificarEmailRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -148,6 +155,7 @@ export interface FileRoutesByTo {
   '/painel': typeof AuthenticatedPainelRoute
   '/producao': typeof AuthenticatedProducaoRoute
   '/usuarios': typeof AuthenticatedUsuariosRoute
+  '/api/verificar-email': typeof ApiVerificarEmailRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -168,6 +176,7 @@ export interface FileRoutesById {
   '/_authenticated/painel': typeof AuthenticatedPainelRoute
   '/_authenticated/producao': typeof AuthenticatedProducaoRoute
   '/_authenticated/usuarios': typeof AuthenticatedUsuariosRoute
+  '/api/verificar-email': typeof ApiVerificarEmailRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -188,6 +197,7 @@ export interface FileRouteTypes {
     | '/painel'
     | '/producao'
     | '/usuarios'
+    | '/api/verificar-email'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -206,6 +216,7 @@ export interface FileRouteTypes {
     | '/painel'
     | '/producao'
     | '/usuarios'
+    | '/api/verificar-email'
   id:
     | '__root__'
     | '/'
@@ -225,6 +236,7 @@ export interface FileRouteTypes {
     | '/_authenticated/painel'
     | '/_authenticated/producao'
     | '/_authenticated/usuarios'
+    | '/api/verificar-email'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -235,6 +247,7 @@ export interface RootRouteChildren {
   RedefinirSenhaRoute: typeof RedefinirSenhaRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TrialExpiradoRoute: typeof TrialExpiradoRoute
+  ApiVerificarEmailRoute: typeof ApiVerificarEmailRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -358,6 +371,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedUsuariosRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/verificar-email': {
+      id: '/api/verificar-email'
+      path: '/api/verificar-email'
+      fullPath: '/api/verificar-email'
+      preLoaderRoute: typeof ApiVerificarEmailRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -398,6 +418,7 @@ const rootRouteChildren: RootRouteChildren = {
   RedefinirSenhaRoute: RedefinirSenhaRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TrialExpiradoRoute: TrialExpiradoRoute,
+  ApiVerificarEmailRoute: ApiVerificarEmailRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

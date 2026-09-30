@@ -10,6 +10,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Eye, EyeOff } from "lucide-react";
 import { validatePassword } from "@/lib/password-validator";
 import { PasswordRequirements } from "@/components/PasswordRequirements";
+import {
+  processarCadastro,
+  verificarEmailExiste,
+  normalizarEmail,
+  CODIGO_ERRO_EMAIL_DUPLICADO,
+  MSG_EMAIL_DUPLICADO,
+} from "@/lib/auth-signup";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -30,6 +37,9 @@ function AuthPage() {
   const [showPassword, setShowPassword] = useState(false);
 
   // Estados dos campos de senha na aba cadastrar
+  const [cadEmail, setCadEmail] = useState("");
+  const [emailDuplicadoAviso, setEmailDuplicadoAviso] = useState(false);
+  const [verificandoEmail, setVerificandoEmail] = useState(false);
   const [cadSenha, setCadSenha] = useState("");
   const [cadConfirmarSenha, setCadConfirmarSenha] = useState("");
   const [showCadPassword, setShowCadPassword] = useState(false);
@@ -49,13 +59,30 @@ function AuthPage() {
     });
   }, [navigate]);
 
+  async function checarEmailEmUso(email: string) {
+    const norm = normalizarEmail(email);
+    if (!norm || !norm.includes("@") || norm.length < 5) {
+      setEmailDuplicadoAviso(false);
+      return;
+    }
+    try {
+      setVerificandoEmail(true);
+      const existe = await verificarEmailExiste(norm, supabase);
+      setEmailDuplicadoAviso(existe);
+    } catch {
+      setEmailDuplicadoAviso(false);
+    } finally {
+      setVerificandoEmail(false);
+    }
+  }
+
   async function entrar(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (loading) return;
     const f = new FormData(e.currentTarget);
     try {
       setLoading(true);
-      const email = String(f.get("email"));
+      const email = normalizarEmail(String(f.get("email")));
       const password = String(f.get("senha"));
 
       // 1. Executa o login normalmente
@@ -187,7 +214,7 @@ function AuthPage() {
     const f = new FormData(e.currentTarget);
     try {
       setLoading(true);
-      const email = String(f.get("email"));
+      const email = normalizarEmail(String(f.get("email")));
       const password = String(f.get("senha"));
       const confirmarSenha = String(f.get("confirmarSenha") ?? "");
       const nome = String(f.get("nome"));
@@ -214,36 +241,42 @@ function AuthPage() {
         return;
       }
 
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: window.location.origin,
-          data: {
-            nome,
-            empresa_nome: nomeEmpresa,
-            empresa_cnpj: cnpj,
-            telefone,
-            categoria: segmento, // 'reciclagem' ou 'adega'
-          },
+      // 3. Processamento seguro de cadastro (com normalização, verificação prévia e bloqueio de duplicidade)
+      const resultado = await processarCadastro(
+        {
+          email,
+          password,
+          nome,
+          empresaNome: nomeEmpresa,
+          cnpj,
+          telefone,
+          categoria: segmento,
         },
-      });
+        supabase
+      );
 
-      if (error) {
-        const msg = error.message?.toLowerCase().includes("already registered")
-          ? "Este e-mail já possui cadastro. Faça login ou recupere sua senha."
-          : (error.message || "Erro ao processar cadastro.");
-        toast.error("Não foi possível criar a conta", { description: msg });
+      if (!resultado.success) {
+        if (resultado.error === CODIGO_ERRO_EMAIL_DUPLICADO) {
+          setEmailDuplicadoAviso(true);
+          toast.error("E-mail já cadastrado", {
+            description: MSG_EMAIL_DUPLICADO,
+          });
+        } else {
+          toast.error("Não foi possível criar a conta", {
+            description: resultado.message,
+          });
+        }
         return;
       }
 
+      const data = resultado.data;
       const isProdDomain =
         typeof window !== "undefined" &&
         (window.location.hostname === "basezeroum.com.br" ||
           window.location.hostname.endsWith(".basezeroum.com.br"));
 
       // Redirecionamento pós-cadastro imediato
-      if (data.session) {
+      if (resultado.session || data?.session) {
         if (segmento === "reciclagem") {
           navigate({ to: "/painel", replace: true });
         } else if (segmento === "adega") {
@@ -270,13 +303,14 @@ function AuthPage() {
 
   async function recuperar(email: string) {
     if (loading) return;
-    if (!email) {
+    const norm = normalizarEmail(email);
+    if (!norm) {
       toast.error("Informe o e-mail para recuperar a senha");
       return;
     }
     try {
       setLoading(true);
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      const { error } = await supabase.auth.resetPasswordForEmail(norm, {
         redirectTo: `${window.location.origin}/redefinir-senha`,
       });
       if (error) {
@@ -382,8 +416,43 @@ function AuthPage() {
                   <Input id="nome" name="nome" required />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="email-cad">E-mail</Label>
-                  <Input id="email-cad" name="email" type="email" required />
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="email-cad">E-mail</Label>
+                    {verificandoEmail && (
+                      <span className="text-[11px] text-muted-foreground animate-pulse">
+                        Verificando e-mail...
+                      </span>
+                    )}
+                  </div>
+                  <Input
+                    id="email-cad"
+                    name="email"
+                    type="email"
+                    required
+                    value={cadEmail}
+                    onChange={(e) => {
+                      setCadEmail(e.target.value);
+                      if (emailDuplicadoAviso) setEmailDuplicadoAviso(false);
+                    }}
+                    onBlur={() => checarEmailEmUso(cadEmail)}
+                    placeholder="seu.email@empresa.com"
+                    className={emailDuplicadoAviso ? "border-destructive focus-visible:ring-destructive" : ""}
+                  />
+                  {emailDuplicadoAviso && (
+                    <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-2.5 text-xs text-destructive flex items-center justify-between">
+                      <span>Este e-mail já está em uso na plataforma.</span>
+                      <button
+                        type="button"
+                        className="font-semibold underline ml-2 hover:text-foreground shrink-0"
+                        onClick={() => {
+                          setModo("entrar");
+                          setEmailDuplicadoAviso(false);
+                        }}
+                      >
+                        Ir para o login
+                      </button>
+                    </div>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="senha-cad">Senha</Label>
