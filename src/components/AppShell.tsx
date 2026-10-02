@@ -60,23 +60,29 @@ const breve = (title: string, icon: typeof Boxes, acesso: Item["acesso"] = "todo
 });
 
 const gruposAdega: { label: string; itens: Item[] }[] = [
-  { label: "Análise", itens: [{ title: "Painel", url: "/adega", icon: LayoutDashboard, acesso: "todos" }, breve("Analytics", PieChart)] },
-  { label: "Vendas", itens: [breve("PDV / Nova venda", ShoppingCart), breve("Vendas", ShoppingCart), breve("Comandas", FileSpreadsheet), breve("Mesas", LayoutDashboard)] },
-  { label: "Produtos", itens: [breve("Produtos", Package), breve("Categorias", Boxes), breve("Fichas técnicas", FileSpreadsheet)] },
-  { label: "Estoque", itens: [breve("Estoque", Warehouse), breve("Movimentações", Boxes), breve("Inventário", BarChart3), breve("Perdas", Boxes)] },
-  { label: "Compras", itens: [breve("Compras", Truck), breve("Fornecedores", Truck)] },
   {
-    label: "Financeiro",
+    label: "Análise",
     itens: [
-      breve("Caixa", Banknote, "financeiro"),
-      breve("Contas a pagar", Wallet, "financeiro"),
-      breve("Contas a receber", Wallet, "financeiro"),
-      breve("Fluxo de caixa", LineChart, "financeiro"),
-      breve("DRE", FileSpreadsheet, "financeiro"),
+      { title: "Painel", url: "/adega", icon: LayoutDashboard, acesso: "todos" },
+      { title: "Fluxo de caixa", url: "/fluxo-de-caixa", icon: LineChart, acesso: "financeiro" },
+      { title: "DRE", url: "/dre", icon: FileSpreadsheet, acesso: "financeiro" },
     ],
   },
-  { label: "Clientes", itens: [breve("Clientes", Users), breve("CRM", Users)] },
-  { label: "Configurações", itens: [{ title: "Empresa", url: "/empresa", icon: Settings, acesso: "todos" }] },
+  {
+    label: "Operação",
+    itens: [
+      { title: "Vendas e estoque", url: "/estoque", icon: ShoppingCart, acesso: "todos" },
+      { title: "Caixa", url: "/caixa", icon: Banknote, acesso: "financeiro" },
+      { title: "Financeiro", url: "/financeiro", icon: Wallet, acesso: "financeiro" },
+    ],
+  },
+  {
+    label: "Cadastros",
+    itens: [
+      { title: "Produtos e parceiros", url: "/cadastros", icon: Package, acesso: "todos" },
+      { title: "Empresa", url: "/empresa", icon: Settings, acesso: "todos" },
+    ],
+  },
 ];
 
 const grupos: { label: string; itens: Item[] }[] = [

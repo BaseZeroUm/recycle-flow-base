@@ -24,7 +24,16 @@ export function ehRotaAdega(pathname: string): boolean {
 }
 
 /** Rotas acessíveis a qualquer segmento dentro da área logada. */
-const ROTAS_COMUNS = ["/empresa", "/usuarios"];
+const ROTAS_COMUNS = [
+  "/empresa",
+  "/usuarios",
+  "/cadastros",
+  "/estoque",
+  "/caixa",
+  "/financeiro",
+  "/fluxo-de-caixa",
+  "/dre",
+];
 export function ehRotaComum(pathname: string): boolean {
   return ROTAS_COMUNS.some((r) => pathname === r || pathname.startsWith(`${r}/`));
 }
