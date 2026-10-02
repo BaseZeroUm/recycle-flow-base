@@ -27,6 +27,7 @@ import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedProducaoRouteImport } from './routes/_authenticated/producao'
 import { Route as AuthenticatedReciclagemRouteImport } from './routes/_authenticated/reciclagem'
 import { Route as AuthenticatedUsuariosRouteImport } from './routes/_authenticated/usuarios'
+import { Route as ApiVerificarEmailRouteImport } from './routes/api/verificar-email'
 import { Route as AuthenticatedAdegaIndexRouteImport } from './routes/_authenticated/adega/index'
 
 const IndexRoute = IndexRouteImport.update({
@@ -119,6 +120,11 @@ const AuthenticatedUsuariosRoute = AuthenticatedUsuariosRouteImport.update({
   path: '/usuarios',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiVerificarEmailRoute = ApiVerificarEmailRouteImport.update({
+  id: '/api/verificar-email',
+  path: '/api/verificar-email',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedAdegaIndexRoute = AuthenticatedAdegaIndexRouteImport.update({
   id: '/adega/',
   path: '/adega/',
@@ -143,6 +149,7 @@ export interface FileRoutesByFullPath {
   '/producao': typeof AuthenticatedProducaoRoute
   '/reciclagem': typeof AuthenticatedReciclagemRoute
   '/usuarios': typeof AuthenticatedUsuariosRoute
+  '/api/verificar-email': typeof ApiVerificarEmailRoute
   '/adega/': typeof AuthenticatedAdegaIndexRoute
 }
 export interface FileRoutesByTo {
@@ -163,6 +170,7 @@ export interface FileRoutesByTo {
   '/producao': typeof AuthenticatedProducaoRoute
   '/reciclagem': typeof AuthenticatedReciclagemRoute
   '/usuarios': typeof AuthenticatedUsuariosRoute
+  '/api/verificar-email': typeof ApiVerificarEmailRoute
   '/adega': typeof AuthenticatedAdegaIndexRoute
 }
 export interface FileRoutesById {
@@ -185,6 +193,7 @@ export interface FileRoutesById {
   '/_authenticated/producao': typeof AuthenticatedProducaoRoute
   '/_authenticated/reciclagem': typeof AuthenticatedReciclagemRoute
   '/_authenticated/usuarios': typeof AuthenticatedUsuariosRoute
+  '/api/verificar-email': typeof ApiVerificarEmailRoute
   '/_authenticated/adega/': typeof AuthenticatedAdegaIndexRoute
 }
 export interface FileRouteTypes {
@@ -207,6 +216,7 @@ export interface FileRouteTypes {
     | '/producao'
     | '/reciclagem'
     | '/usuarios'
+    | '/api/verificar-email'
     | '/adega/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -227,6 +237,7 @@ export interface FileRouteTypes {
     | '/producao'
     | '/reciclagem'
     | '/usuarios'
+    | '/api/verificar-email'
     | '/adega'
   id:
     | '__root__'
@@ -248,6 +259,7 @@ export interface FileRouteTypes {
     | '/_authenticated/producao'
     | '/_authenticated/reciclagem'
     | '/_authenticated/usuarios'
+    | '/api/verificar-email'
     | '/_authenticated/adega/'
   fileRoutesById: FileRoutesById
 }
@@ -259,6 +271,7 @@ export interface RootRouteChildren {
   RedefinirSenhaRoute: typeof RedefinirSenhaRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TrialExpiradoRoute: typeof TrialExpiradoRoute
+  ApiVerificarEmailRoute: typeof ApiVerificarEmailRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -389,6 +402,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedUsuariosRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/verificar-email': {
+      id: '/api/verificar-email'
+      path: '/api/verificar-email'
+      fullPath: '/api/verificar-email'
+      preLoaderRoute: typeof ApiVerificarEmailRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/adega/': {
       id: '/_authenticated/adega/'
       path: '/adega'
@@ -440,6 +460,7 @@ const rootRouteChildren: RootRouteChildren = {
   RedefinirSenhaRoute: RedefinirSenhaRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TrialExpiradoRoute: TrialExpiradoRoute,
+  ApiVerificarEmailRoute: ApiVerificarEmailRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
