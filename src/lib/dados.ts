@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 export interface Material {
   id: string;
   nome: string;
-  unidade: "kg" | "ton";
+  unidade: "kg" | "ton" | "un" | "garrafa" | "lata" | "fardo" | "cx" | "dose" | "l";
   preco_compra: number;
   preco_venda: number;
   ativo: boolean;
